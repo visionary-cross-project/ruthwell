@@ -18,7 +18,7 @@ description: >-
 # http://localhost:4000/ruthwell/.
 baseurl: "/ruthwell"
 # url: the base hostname & protocol for the published site.
-url: "https://Jocelyn-McKnight.github.io"
+url: "https://visionary-cross-project.github.io"
 
 # Build settings
 markdown: kramdown
