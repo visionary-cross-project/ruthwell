@@ -20,12 +20,22 @@ baseurl: ""
 # url: the base hostname & protocol for the published site.
 url: "https://visionary-cross-project.github.io"
 
+# remote_theme: pull the shared chrome and styling from the hub repo
+# (the user-page site) instead of duplicating them here. At build time Jekyll
+# fetches the hub's _layouts, _includes, and _sass partials, and compiles its
+# assets/css/main.scss into this site's /assets/css/main.css. Edit the styles
+# once, in visionary-cross-project.github.io, and every cross site picks them
+# up on its next build. Any same-named file committed here would override the
+# theme's copy, so this repo deliberately keeps no local style sources.
+remote_theme: visionary-cross-project/visionary-cross-project.github.io
+
 # Build settings
 markdown: kramdown
 plugins:
   - jekyll-feed
+  - jekyll-remote-theme
 
-# Sass: partials live in _sass/, compiled via assets/css/main.scss.
+# Sass: partials and assets/css/main.scss now live in the remote theme.
 # "expanded" keeps the generated CSS readable; use "compressed" to minify.
 sass:
   style: expanded
