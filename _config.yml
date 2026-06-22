@@ -29,6 +29,18 @@ url: "https://visionary-cross-project.github.io"
 # theme's copy, so this repo deliberately keeps no local style sources.
 remote_theme: visionary-cross-project/visionary-cross-project.github.io
 
+# Per-cross links for the shared nav (from the remote theme), and the shared
+# header below. Each cross is a project site under this same domain.
+crosses:
+  ruthwell: "/ruthwell"
+  bewcastle: "/bewcastle"
+  brussels: "/brussels"
+
+# Shared header (rendered by the theme's _includes/header.html). header_image is
+# baseurl-relative, so it resolves to /ruthwell/assets/img/head.jpg.
+header_title: "Ruthwell"
+header_image: "/assets/img/head.jpg"
+
 # Build settings
 markdown: kramdown
 plugins:

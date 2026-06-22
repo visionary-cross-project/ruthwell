@@ -1,106 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ruthwell</title>
-
-  <link rel="stylesheet" href="/ruthwell/assets/css/main.css" />
-  <link rel="stylesheet" href="/ruthwell/3dhop/stylesheet/3dhop.css" />
-  <link rel="icon" type="image/x-icon" href="/ruthwell/img/cross.ico" />
-
-  <script src="/ruthwell/3dhop/js/spidergl.js"></script>
-  <script src="/ruthwell/3dhop/js/jquery.js"></script>
-  <script src="/ruthwell/3dhop/js/presenter.js"></script>
-  <script src="/ruthwell/3dhop/js/nexus.js"></script>
-  <script src="/ruthwell/3dhop/js/ply.js"></script>
-
-  <script src="/ruthwell/3dhop/js/trackball_sphere.js"></script>
-  <script src="/ruthwell/3dhop/js/trackball_turntable.js"></script>
-  <script src="/ruthwell/3dhop/js/trackball_turntable_pan.js"></script>
-  <script src="/ruthwell/3dhop/js/trackball_pantilt.js"></script>
-
-  <script src="/ruthwell/3dhop/js/init.js"></script>
-</head>
-
-<body>
-  <header class="header">
-    <a href="/frontmatter/home.html">
-      <img src="/ruthwell/assets/img/head.jpg" alt="">
-      <div class="header-text">Ruthwell</div>
-    </a>
-  </header>
-
-    <input type="checkbox" id="menu-toggle" class="menu-toggle">
-
-<nav class="landing-nav" aria-label="Main navigation">
-    <a href="/frontmatter/home.html">Home</a>
-    <a href="/ruthwell/intro.html">Ruthwell</a>
-    <a href="/bewcastle/intro.html">Bewcastle</a>
-    <a href="/brussels/intro.html">Brussels</a>
-
-    <label for="menu-toggle" class="menu-link">
-      Menu ☰
-    </label>
-  </nav>
-
-  <nav class="landing-menu" aria-label="Expanded menu">
-
-    <section>
-      <input type="checkbox" id="frontmatter-toggle" class="submenu-toggle">
-      <label for="frontmatter-toggle" class="submenu-label">Frontmatter</label>
-      <div class="submenu">
-        <a href="/frontmatter/home.html">Home</a>
-        <a href="/frontmatter/history.html">History of the Project</a>
-        <a href="/frontmatter/connections.html">Connections Between Crosses</a>
-      </div>
-    </section>
-
-    <section>
-      <input type="checkbox" id="ruthwell-toggle" class="submenu-toggle">
-      <label for="ruthwell-toggle" class="submenu-label">Ruthwell</label>
-      <div class="submenu">
-        <a href="/ruthwell/intro.html">Introduction</a>
-        <a href="/ruthwell/model.html">Ruthwell Model</a>
-        <a href="/ruthwell/history.html">History of The Ruthwell Cross</a>
-        <a href="/ruthwell/iconography.html">Iconography of the Ruthwell Cross</a>
-        <a href="/ruthwell/scan.html">Scanning Ruthwell</a>
-      </div>
-    </section>
-
-    <section>
-      <input type="checkbox" id="bewcastle-toggle" class="submenu-toggle">
-      <label for="bewcastle-toggle" class="submenu-label">Bewcastle</label>
-      <div class="submenu">
-        <a href="/bewcastle/intro.html">Introduction</a>
-        <a href="/bewcastle/model.html">Bewcastle Model</a>
-        <a href="/bewcastle/scan.html">Scanning Bewcastle</a>
-      </div>
-    </section>
-
-    <section>
-      <input type="checkbox" id="brussels-toggle" class="submenu-toggle">
-      <label for="brussels-toggle" class="submenu-label">Brussels</label>
-      <div class="submenu">
-        <a href="/brussels/intro.html">Introduction</a>
-        <a href="/brussels/model.html">Brussels Model</a>
-        <a href="/brussels/scan.html">Scanning Brussels</a>
-      </div>
-    </section>
-
-    <section>
-      <input type="checkbox" id="backmatter-toggle" class="submenu-toggle">
-      <label for="backmatter-toggle" class="submenu-label">Backmatter</label>
-      <div class="submenu">
-        <a href="/backmatter/table.html">Table of Contents</a>
-        <a href="/backmatter/research.html">Research &amp; Media</a>
-        <a href="/backmatter/glossary.html">Glossary</a>
-        <a href="/backmatter/contact.html">Contact</a>
-      </div>
-    </section>
-
-  </nav>
-
+---
+layout: default
+title: "Ruthwell Model"
+viewer: true
+---
 <main>
   <div class="viewer-layout">
     <div id="viewerWrap">
@@ -1017,15 +919,3 @@ var panelToFace = {
     });
   </script>
 </main>
-
-  <div class="footer">
-    <p>&copy; 2026 Visionary Cross Project. All Rights Reserved.</p>
-    <nav>
-      <a href="/frontmatter/history.html">About</a> |
-      <a href="/backmatter/contact.html">Contact</a> |
-      <a href="/frontmatter/home.html">Home</a>
-    </nav>
-  </div>
-
-</body>
-</html>
