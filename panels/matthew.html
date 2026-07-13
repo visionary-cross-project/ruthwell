@@ -71,7 +71,9 @@ viewer: true
       var presenter = null;
 
       var PANEL_ID = "matthew";
-      var PANEL_FACE = "back";
+
+      // Full trackball pose: [phi, theta, panX, _, panY, distance]
+      var PANEL_POSE = [-181.055, 5.271, -0.002, 0.685, -0.029, 0.153];
 
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -122,34 +124,11 @@ viewer: true
         }, 120);
       }
 
-      function faceDirection(direction) {
-        if (!presenter) return;
-
-        var my_pos = presenter.getTrackballPosition();
-
-        switch (direction) {
-          case "front": my_pos[0] = 0;   break;
-          case "right": my_pos[0] = 90;  break;
-          case "back":  my_pos[0] = 180; break;
-          case "left":  my_pos[0] = -90; break;
-          default: return;
-        }
-
-        presenter.animateToTrackballPosition(my_pos);
-      }
-
       function highlightThisPanel() {
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        faceDirection(PANEL_FACE);
-
-        setTimeout(function () {
-          var my_pos = presenter.getTrackballPosition();
-          my_pos[5] = 0.6;
-          presenter.animateToTrackballPosition(my_pos);
-        }, 400);
-
+        presenter.animateToTrackballPosition(PANEL_POSE.slice());
         presenter.repaint();
       }
 

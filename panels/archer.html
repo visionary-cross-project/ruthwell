@@ -73,7 +73,9 @@ viewer: true
       var presenter = null;
 
       var PANEL_ID = "archer";
-      var PANEL_FACE = "front";
+
+      // Full trackball pose: [phi, theta, panX, _, panY, distance]
+      var PANEL_POSE = [0.000, 0.000, -0.001, 0.693, 0.055, 0.146];
  
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -82,7 +84,7 @@ viewer: true
           meshes: {
             Ruthwell: { url: "/ruthwell/assets/models/ruthwell.nxz" },
  
-            john_eagle: { url: "/ruthwell/assets/models/visitation_cut.nxz" },
+            archer: { url: "/ruthwell/assets/models/archer_cut.nxz" },
 
           },
  
@@ -95,7 +97,7 @@ viewer: true
           },
  
           spots: {
-            john_eagle:   { mesh: "visitation",   visible: false, alpha: 0.65, color: [0.0, 0.25, 1.0] }
+            archer:   { mesh: "archer",   visible: false, alpha: 0.65, color: [0.0, 0.25, 1.0] }
           },
  
           trackball: {
@@ -124,37 +126,12 @@ viewer: true
         }, 120);
       }
  
-      // Rotate to the correct face for this panel
-      function faceDirection(direction) {
-        if (!presenter) return;
- 
-        var my_pos = presenter.getTrackballPosition();
- 
-        switch (direction) {
-          case "front": my_pos[0] = 0;   break;
-          case "right": my_pos[0] = 90;  break;
-          case "back":  my_pos[0] = 180; break;
-          case "left":  my_pos[0] = -90; break;
-          default: return;
-        }
- 
-        presenter.animateToTrackballPosition(my_pos);
-      }
- 
-      // Highlight this panel's hotspot and zoom in
+      // Highlight this panel's hotspot and move to its saved pose
       function highlightThisPanel() {
         if (!presenter) return;
- 
+
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        faceDirection(PANEL_FACE);
- 
-        // Zoom in on the highlighted spot
-        setTimeout(function () {
-          var my_pos = presenter.getTrackballPosition();
-          my_pos[5] = 0.6;  // distance — lower number = closer zoom
-          presenter.animateToTrackballPosition(my_pos);
-        }, 400);
- 
+        presenter.animateToTrackballPosition(PANEL_POSE.slice());
         presenter.repaint();
       }
  
