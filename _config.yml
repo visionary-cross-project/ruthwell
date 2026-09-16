@@ -12,22 +12,31 @@ description: >-
 
 # baseurl: the subpath this project site is served from, so that any links
 # using relative_url resolve to /ruthwell instead of the domain root (which
-# belongs to the user-page repo). The 3DHOP content pages use plain relative
+# belongs to the project website repo). The 3DHOP content pages use plain relative
 # paths (../../assets/css/main.css) and work regardless, but this keeps the
-# Jekyll setup identical to the hub. Local `jekyll serve` previews at
+# Jekyll setup identical to the edition. Local `jekyll serve` previews at
 # http://localhost:4000/ruthwell/.
 baseurl: ""
 # url: the base hostname & protocol for the published site.
-url: "https://sandbox.humanitiesinnovationlab.ca"
+url: "https://visionarycross.humanitiesinnovationlab.ca"
 
-# remote_theme: pull the shared chrome and styling from the hub repo
-# (the user-page site) instead of duplicating them here. At build time Jekyll
-# fetches the hub's _layouts, _includes, and _sass partials, and compiles its
+# remote_theme: pull the shared chrome and styling from the edition repo
+# instead of duplicating them here. At build time Jekyll fetches the edition's
+# _layouts, _includes, and _sass partials, and compiles its
 # assets/css/main.scss into this site's /assets/css/main.css. Edit the styles
-# once, in visionary-cross-project.github.io, and every cross site picks them
+# once, in visionary-cross-project/edition, and every cross site picks them
 # up on its next build. Any same-named file committed here would override the
 # theme's copy, so this repo deliberately keeps no local style sources.
-remote_theme: visionary-cross-project/visionary-cross-project.github.io
+remote_theme: visionary-cross-project/edition
+
+# edition_url: the subpath the edition is served from. The edition is now its
+# own repo (visionary-cross-project/edition), published as a project site
+# alongside the crosses; the domain root belongs to the separate project
+# website. The shared chrome (nav, header, footer) prefixes its frontmatter,
+# backmatter, and home links with this, exactly as it does with `crosses`
+# below. It must be set in every repo that uses the theme, because
+# remote_theme supplies the templates but each site keeps its own config.
+edition_url: "/edition"
 
 # Per-cross links for the shared nav (from the remote theme), and the shared
 # header below. Each cross is a project site under this same domain.

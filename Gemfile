@@ -14,7 +14,7 @@ gem "jekyll", "~> 4.4.1"
 # If you have any plugins, put them here!
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
-  # Pulls the shared layouts, includes, and styles from the hub repo at build
+  # Pulls the shared layouts, includes, and styles from the edition repo at build
   # time (see remote_theme in _config.yml).
   gem "jekyll-remote-theme"
 end
