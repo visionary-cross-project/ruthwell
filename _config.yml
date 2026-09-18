@@ -10,13 +10,14 @@ description: >-
   A digital edition of the Ruthwell Cross, with an interactive 3D model
   and panel-by-panel iconographic commentary.
 
-# baseurl: the subpath this project site is served from, so that any links
-# using relative_url resolve to /ruthwell instead of the domain root (which
-# belongs to the user-page repo). The 3DHOP content pages use plain relative
-# paths (../../assets/css/main.css) and work regardless, but this keeps the
-# Jekyll setup identical to the hub. Local `jekyll serve` previews at
-# http://localhost:4000/ruthwell/.
-baseurl: ""
+# baseurl: the subpath this project site is served from. Everything the theme
+# emits through relative_url — the stylesheet, the header image, and the ten
+# 3DHOP scripts the viewer pages need — is prefixed with this. It must not be
+# empty: the crosses are served under /ruthwell, and an empty value sends those
+# requests to the domain root, where they 404 and the viewer never starts.
+# The deploy workflow no longer passes --baseurl, so this value is the one that
+# is used, in CI and in local `jekyll serve` alike.
+baseurl: "/ruthwell"
 # url: the base hostname & protocol for the published site.
 url: "https://sandbox.humanitiesinnovationlab.ca"
 
@@ -29,12 +30,8 @@ url: "https://sandbox.humanitiesinnovationlab.ca"
 # theme's copy, so this repo deliberately keeps no local style sources.
 remote_theme: visionary-cross-project/visionary-cross-project.github.io
 
-# Per-cross links for the shared nav (from the remote theme), and the shared
-# header below. Each cross is a project site under this same domain.
-crosses:
-  ruthwell: "/ruthwell"
-  bewcastle: "/bewcastle"
-  brussels: "/brussels"
+# Cross-to-cross links live in the theme's _includes/nav.html, not here, so the
+# menu is edited once in the hub repo rather than in all four.
 
 # Shared header (rendered by the theme's _includes/header.html). header_image is
 # baseurl-relative, so it resolves to /ruthwell/assets/img/head.jpg.

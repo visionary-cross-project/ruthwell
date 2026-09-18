@@ -36,9 +36,12 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build with Jekyll
-        # configure-pages sets base_path to /visionary-cross-project for this
-        # project site, so assets and links (which use relative_url) resolve.
-        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+        # No --baseurl here on purpose. The flag overrides _config.yml, and
+        # configure-pages reports an empty base_path for these sites, which
+        # silently flattened every relative_url path to the domain root and
+        # broke the 3DHOP viewer. baseurl now lives in _config.yml alone, so
+        # a local build and a CI build produce identical paths.
+        run: bundle exec jekyll build
         env:
           JEKYLL_ENV: production
 
