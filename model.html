@@ -648,6 +648,11 @@ function setup3dhop() {
   jQuery(window).on("resize", fitCanvasToDisplay);
   fitCanvasToDisplay();
 
+  // 3DHOP draws on demand, so while detail streams in the gaps between draws read as a low frame rate
+  // and Nexus coarsens the model just as the viewer stops to look. Keep refining to the full target;
+  // Nexus's per-frame draw budget still bounds the rendering cost.
+  presenter.setNexusMinFps(0);
+
   presenter.resetTrackball();
   setTimeout(function () {
     presenter.repaint();
