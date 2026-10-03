@@ -29,11 +29,6 @@ viewer: true
             <img src="/ruthwell/3dhop/skins/dark/full.png" alt="Full Screen" />
           </button>
 
-          <div id="debug-pose-panel" style="position: absolute; top: 10px; left: 10px; z-index: 200; background: rgba(40,40,40,0.88); color: white; padding: 8px 10px; font-family: monospace; font-size: 12px; border-radius: 4px;">
-            <button type="button" onclick="logPose()" style="background: #4caf50; color: white; border: none; padding: 6px 10px; cursor: pointer; font-weight: bold; border-radius: 3px;">📍 Log Current Pose</button>
-            <div id="poseLog" style="display: none; white-space: pre; user-select: all; background: #111; padding: 6px 8px; margin-top: 6px; max-width: 380px; border-radius: 3px;"></div>
-          </div>
-
           <canvas id="draw-canvas"></canvas>
         </div>
       </div>
@@ -84,9 +79,6 @@ viewer: true
 
       var PANEL_ID = "john_eagle";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      // Click "Log Current Pose" to capture new values, then paste them here.
-      var PANEL_POSE = [0.000, 0.000, 0.001, 0.927, 0.048, 0.146];
  
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -143,7 +135,7 @@ viewer: true
 
       function highlightThisPanel() {
         if (!presenter) return;
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
 
@@ -160,21 +152,6 @@ viewer: true
         presenter.repaint();
       }
 
-      // Debug helper — log the current camera pose so you can tune PANEL_POSE.
-      function logPose() {
-        if (!presenter) return;
-        var p = presenter.getTrackballPosition();
-        var nums = p.map(function (v) { return Number(v).toFixed(3); });
-        var text = "PANEL_POSE = [" + nums.join(", ") + "];";
-
-        var box = document.getElementById("poseLog");
-        if (box) {
-          box.textContent = text;
-          box.style.display = "block";
-        }
-        console.log(PANEL_ID, text);
-      }
- 
       function toggleFullscreen() {
         var el = document.getElementById("3dhop");
         var btn = document.querySelector("#fullscreen-btn img");

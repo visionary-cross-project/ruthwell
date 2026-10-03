@@ -77,8 +77,6 @@ viewer: true
 
       var PANEL_ID = "eagle";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      var PANEL_POSE = [-181.055, 5.271, 0.002, 0.926, -0.019, 0.120];
 
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -133,7 +131,7 @@ viewer: true
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
 

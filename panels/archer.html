@@ -74,8 +74,6 @@ viewer: true
 
       var PANEL_ID = "archer";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      var PANEL_POSE = [0.000, 0.000, -0.001, 0.693, 0.055, 0.146];
  
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -126,12 +124,12 @@ viewer: true
         }, 120);
       }
  
-      // Highlight this panel's hotspot and move to its saved pose
+      // Highlight this panel's hotspot and reset the view
       function highlightThisPanel() {
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
  

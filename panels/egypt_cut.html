@@ -76,8 +76,6 @@ viewer: true
 
       var PANEL_ID = "egypt";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      var PANEL_POSE = [-181.055, 5.271, 0.004, -0.463, -0.078, 0.261];
 
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -132,7 +130,7 @@ viewer: true
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
 

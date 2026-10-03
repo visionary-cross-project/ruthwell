@@ -83,8 +83,6 @@ viewer: true
 
       var PANEL_ID = "west";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      var PANEL_POSE = [-269.863, 7.563, 0.076, -0.067, 0.020, 1.369];
 
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -139,7 +137,7 @@ viewer: true
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
 

@@ -70,8 +70,6 @@ viewer: true
 
       var PANEL_ID = "nativity";
 
-      // Full trackball pose: [phi, theta, panX, _, panY, distance]
-      var PANEL_POSE = [-181.055, 5.271, 0.008, -0.795, -0.083, 0.433];
 
       function setup3dhop() {
         presenter = new Presenter("draw-canvas");
@@ -126,7 +124,7 @@ viewer: true
         if (!presenter) return;
 
         presenter.setSpotVisibilityByName(PANEL_ID, true, true);
-        presenter.animateToTrackballPosition(PANEL_POSE.slice());
+        presenter.resetTrackball();
         presenter.repaint();
       }
 
