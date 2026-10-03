@@ -505,7 +505,7 @@ _createStandardFacesProgram : function () {
 			if((uUseLighting)&&(length(vNormal) > 0.0))							\n\
 			{																	\n\
 			  float nDotL   = dot(vNormal, -uViewSpaceLightDirection);			\n\
-			  lambert = max(0.0, gl_FrontFacing? nDotL : -nDotL);				\n\
+			  lambert = 0.3 + 0.7 * max(0.0, gl_FrontFacing? nDotL : -nDotL);	/* VCP: 30% ambient so tilted relief keeps its recorded colour */ \n\
 																				\n\
               vec3 halfV = normalize(-uViewSpaceLightDirection -vModelViewPos.xyz);\n\
               float spc = pow(max(dot(vNormal, halfV),0.0), uSpecularColor.a);	\n\
