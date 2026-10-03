@@ -640,10 +640,51 @@ function setup3dhop() {
   presenter._onEnterSpot = onEnterSpot;
   presenter._onLeaveSpot = onLeaveSpot;
 
+  // Render at the display's real pixel density (bound after init3dhop's own resize handler, so it runs last)
+  presenter.ui._getMouseClientPos = getMouseCanvasPos;
+  // presenter.onDrag turns raw cursor deltas into rotation, so report them in CSS pixels to keep drag speed unchanged
+  Object.defineProperty(presenter.ui, "cursorDeltaX", { get: function () { return this._cursorDeltaPos[0] / pixelRatio(); } });
+  Object.defineProperty(presenter.ui, "cursorDeltaY", { get: function () { return this._cursorDeltaPos[1] / pixelRatio(); } });
+  jQuery(window).on("resize", fitCanvasToDisplay);
+  fitCanvasToDisplay();
+
   presenter.resetTrackball();
   setTimeout(function () {
     presenter.repaint();
   }, 120);
+}
+
+// 3DHOP sizes the canvas in CSS pixels, which renders blurry on high-DPI screens
+var MAX_PIXEL_RATIO = 3;
+// Nexus refines until geometric error is below this many CSS pixels (3DHOP default: 1.0)
+var NEXUS_ERROR_CSS_PX = 0.8;
+
+function pixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+}
+
+function fitCanvasToDisplay() {
+  var canvas = document.getElementById("draw-canvas");
+  var ratio = pixelRatio();
+  var w = Math.round(canvas.clientWidth * ratio);
+  var h = Math.round(canvas.clientHeight * ratio);
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  // Nexus measures error in canvas pixels, so scale the target to keep the download in proportion
+  presenter.setNexusTargetError(NEXUS_ERROR_CSS_PX * ratio);
+  presenter.repaint();
+}
+
+// SpiderGL's version mixes CSS-pixel offsets with canvas-pixel height; map both axes into canvas pixels
+function getMouseCanvasPos(e) {
+  var canvas = this._canvas;
+  var rect = canvas.getBoundingClientRect();
+  var p = e.changedTouches ? e.changedTouches[0] : e;
+  var x = (p.clientX - rect.left) * canvas.width / rect.width;
+  var y = canvas.height - (p.clientY - rect.top) * canvas.height / rect.height;
+  return [x, y, x < 0 || x >= canvas.width || y < 0 || y >= canvas.height, e.timeStamp];
 }
 
 function onEnterSpot(id) {
