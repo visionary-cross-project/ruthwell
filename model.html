@@ -607,6 +607,15 @@ function setup3dhop() {
       }
     },
 
+    // Centre and scale on the whole cross (bounding sphere of the original
+    // ruthwell.nxz), not just the first half, so the saved panel poses still match
+    space: {
+      centerMode: "explicit",
+      explicitCenter: [-7.331, 2616.983, 3.565],
+      radiusMode: "explicit",
+      explicitRadius: 2673.610
+    },
+
     trackball: {
       type: TurntablePanTrackball,
       trackOptions: {
