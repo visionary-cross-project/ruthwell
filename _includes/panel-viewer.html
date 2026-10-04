@@ -4,6 +4,7 @@
   Front matter on the including page:
     face:  south | north | east | west — the face the placeholder cross turns to on load and on Home
     model: optional URL of the panel's own cut. Until it is set, the page shows the whole cross as a placeholder.
+    carving_highlight: true adds the rune button, which tints incised lines red (see the carving highlight in presenter.js).
 {% endcomment %}
 {%- assign face = page.face | default: "south" -%}
 {%- case face -%}
@@ -23,6 +24,9 @@
             <img id="light" title="Enable Light Control" src="/ruthwell/3dhop/skins/dark/lightcontrol.png" /><br/>
             <img id="lighting" title="Disable Lighting" src="/ruthwell/3dhop/skins/dark/lighting.png" /><br/>
             <img id="color" title="Disable Colour" src="/ruthwell/3dhop/skins/dark/color.png" /><br/>
+{%- if page.carving_highlight %}
+            <img id="carving" title="Highlight Carving" src="/ruthwell/3dhop/skins/dark/runes.png" /><br/>
+{%- endif %}
             <img id="screenshot" title="Save Screenshot" src="/ruthwell/3dhop/skins/dark/screenshot.png" />
           </div>
 
@@ -34,6 +38,23 @@
             #lightPad { display: none; position: absolute; right: 14px; bottom: 72px; z-index: 50; width: 110px; height: 110px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); cursor: crosshair; touch-action: none; }
             #lightPad canvas { width: 100%; height: 100%; display: block; }
           </style>
+
+{%- if page.carving_highlight %}
+          <!-- Carving highlight controls: shown while the rune button is on -->
+          <div id="carvingPad" aria-label="Carving highlight">
+            <label for="carvingWidth">Groove width <output id="carvingWidthOut"></output></label>
+            <input id="carvingWidth" type="range" min="3" max="20" step="1" value="8" />
+            <label for="carvingSens">Sensitivity</label>
+            <input id="carvingSens" type="range" min="1" max="9" step="1" value="5" />
+            <p>Zoom in on the inscription for the clearest result.</p>
+          </div>
+          <style>
+            #carvingPad { display: none; position: absolute; left: 70px; bottom: 14px; z-index: 50; width: 190px; padding: 10px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.55); color: #fff; font-family: var(--font-body, sans-serif); font-size: 0.78rem; letter-spacing: 0.04em; }
+            #carvingPad label { display: flex; justify-content: space-between; margin: 0 0 2px; }
+            #carvingPad input[type=range] { width: 100%; margin: 0 0 8px; accent-color: #dc140f; }
+            #carvingPad p { margin: 0; color: rgba(255, 255, 255, 0.75); font-size: 0.72rem; line-height: 1.35; letter-spacing: 0; }
+          </style>
+{%- endif %}
 
           <div id="loadingOverlay">
             <div class="loading-box">
@@ -134,6 +155,7 @@
           presenter.setNexusMinFps(0);
 
           initLightPad();
+          initCarvingPad();
 
           presenter.resetTrackball();
           setTimeout(function () {
@@ -247,6 +269,33 @@
           ctx.stroke();
         }
 
+        // Carving highlight pad. Sensitivity sets the cut depth that gets the full tint:
+        // 1.0 mm at the middle step, 1.35x shallower or deeper per step either side.
+        function initCarvingPad() {
+          var pad = document.getElementById("carvingPad");
+          if (!pad) return;
+          var width = document.getElementById("carvingWidth");
+          var sens = document.getElementById("carvingSens");
+          var widthOut = document.getElementById("carvingWidthOut");
+
+          function apply() {
+            widthOut.textContent = width.value + " mm";
+            presenter.setCarvingHighlight({
+              width: Number(width.value),
+              depth: Math.pow(1.35, 5 - Number(sens.value))
+            });
+          }
+          width.addEventListener("input", apply);
+          sens.addEventListener("input", apply);
+
+          // #3dhop cancels mousedown to stop text selection, which would also stop the sliders
+          ["mousedown", "pointerdown", "touchstart"].forEach(function (type) {
+            pad.addEventListener(type, function (e) { e.stopPropagation(); });
+          });
+
+          apply();
+        }
+
         function toggleFullscreen() {
           var el = document.getElementById("3dhop");
           var btn = document.querySelector("#fullscreen-btn img");
@@ -271,6 +320,7 @@
           else if (action === "light") presenter.enableLightTrackball(!presenter.isLightTrackballEnabled());
           else if (action === "lighting") presenter.enableSceneLighting(!presenter.isSceneLightingEnabled());
           else if (action === "color") presenter.setInstanceSolidColor(HOP_ALL, !presenter.isInstanceSolidColorEnabled(), true);
+          else if (action === "carving") presenter.enableCarvingHighlight(!presenter.isCarvingHighlightEnabled());
           else if (action === "screenshot") presenter.saveScreenshot();
           else if (action === "move_up" || action === "move_down") step(action);
 
@@ -297,6 +347,14 @@
           var color = document.getElementById("color");
           color.src = skin + (solidColor ? "color_on.png" : "color.png");
           color.title = solidColor ? "Enable Colour" : "Disable Colour";
+
+          var carving = document.getElementById("carving");
+          if (carving) {
+            var carvingOn = presenter.isCarvingHighlightEnabled();
+            carving.src = skin + (carvingOn ? "runes_on.png" : "runes.png");
+            carving.title = carvingOn ? "Hide Carving Highlight" : "Highlight Carving";
+            document.getElementById("carvingPad").style.display = carvingOn ? "block" : "none";
+          }
         }
 
         function step(action) {

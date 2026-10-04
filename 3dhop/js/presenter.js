@@ -2051,6 +2051,9 @@ _drawScene : function () {
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 	}
+	// VCP: carving highlight, tinted over the finished scene
+	if (this._carve.enabled) this._drawCarvingHighlight();
+
 	Nexus.endFrame(this.ui.gl);
 
 	// saving image, if necessary
@@ -2452,6 +2455,302 @@ _drawScenePickingSpots : function () {
 	return pixel;
 },
 
+//----------------------------------------------------------------------------------------
+// VCP: CARVING HIGHLIGHT
+// Tints incised lines (rune grooves, cut outlines) with a colour, to make them easier to read.
+// It finds them from the shape of the stone, not from a hand-made mask: after the scene is drawn,
+// the model's depth is rendered into a texture and blurred at the scale of a groove ("unsharp
+// masking the depth buffer", Luft, Colditz & Deussen 2006). Wherever the surface sits deeper than
+// its blurred surroundings it is a cut, and is tinted in proportion to how much deeper it is.
+// Widths and depths are in model units (millimetres for the Ruthwell scans), so the tint keeps
+// the same meaning at every zoom level. Only nexus meshes drawn as faces take part.
+//----------------------------------------------------------------------------------------
+
+_carveCompile : function (vsSrc, fsSrc) {
+	var gl = this.ui.gl;
+	function shader(type, src) {
+		var s = gl.createShader(type);
+		gl.shaderSource(s, src);
+		gl.compileShader(s);
+		if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+			console.error("Carving highlight shader:\n" + gl.getShaderInfoLog(s));
+		return s;
+	}
+	var p = gl.createProgram();
+	gl.attachShader(p, shader(gl.VERTEX_SHADER, vsSrc));
+	gl.attachShader(p, shader(gl.FRAGMENT_SHADER, fsSrc));
+	gl.bindAttribLocation(p, 0, "aPosition"); // nexus feeds positions on attribute 0
+	gl.linkProgram(p);
+	if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+		console.error("Carving highlight program:\n" + gl.getProgramInfoLog(p));
+	var n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+	p.loc = {};
+	for (var i = 0; i < n; i++) {
+		var name = gl.getActiveUniform(p, i).name;
+		p.loc[name] = gl.getUniformLocation(p, name);
+	}
+	return p;
+},
+
+_carveCreatePrograms : function () {
+	var gl = this.ui.gl;
+
+	// Linear view depth, divided by the far plane and packed into RGB; alpha 1 marks the model
+	var packGLSL = [
+		"vec4 packDepth(float v) {",
+		"  vec3 e = fract(v * vec3(1.0, 255.0, 65025.0));",
+		"  e -= e.yzz * vec3(1.0 / 255.0, 1.0 / 255.0, 0.0);",
+		"  return vec4(e, 1.0);",
+		"}",
+		"float unpackDepth(vec4 c) { return dot(c.rgb, vec3(1.0, 1.0 / 255.0, 1.0 / 65025.0)); }"
+	].join("\n");
+
+	this._carveDepthProgram = this._carveCompile([
+		"precision highp float;",
+		"uniform mat4 uWorldViewProjectionMatrix;",
+		"uniform mat4 uWorldViewMatrix;",
+		"attribute vec3 aPosition;",
+		"varying float vDepth;",
+		"void main(void) {",
+		"  vDepth = -(uWorldViewMatrix * vec4(aPosition, 1.0)).z;",
+		"  gl_Position = uWorldViewProjectionMatrix * vec4(aPosition, 1.0);",
+		"}"
+	].join("\n"), [
+		"precision highp float;",
+		"uniform float uFar;",
+		"varying float vDepth;",
+		packGLSL,
+		"void main(void) { gl_FragColor = packDepth(clamp(vDepth / uFar, 0.0, 0.9999)); }"
+	].join("\n"));
+
+	var quadVS = [
+		"attribute vec2 aPosition;",
+		"varying vec2 vUV;",
+		"void main(void) { vUV = aPosition * 0.5 + 0.5; gl_Position = vec4(aPosition, 0.0, 1.0); }"
+	].join("\n");
+
+	// One axis of a Gaussian blur of the depth. The kernel's screen size follows each pixel's own
+	// depth, so it always spans the same width on the stone. Samples off the model are skipped, and so
+	// are samples much nearer or farther than the centre (across a silhouette, or down into the deep
+	// ground of a relief), so model edges and relief backgrounds do not read as cuts.
+	var blurGLSL = [
+		"precision highp float;",
+		"uniform sampler2D uDepth;",
+		"uniform sampler2D uSrc;",
+		"uniform vec2  uStep;",          // one pixel along the blur axis, in UV
+		"uniform float uFar;",
+		"uniform float uRadius;",        // blur radius, view units
+		"uniform float uPxPerUnit;",     // pixels per view unit at depth 1 (perspective) or anywhere (ortho)
+		"uniform float uOrtho;",
+		"uniform float uClampDist;",     // view units: samples farther than this from the centre depth are ignored
+		"varying vec2 vUV;",
+		packGLSL,
+		"const int TAPS = 16;",
+		"float blurAt(vec2 uv, out float d, out bool onModel, out float coverage) {",
+		"  vec4 dc = texture2D(uDepth, uv);",
+		"  onModel = dc.a > 0.5;",
+		"  d = unpackDepth(dc) * uFar;",
+		"  coverage = 0.0;",
+		"  if (!onModel) return 0.0;",
+		"  float px = uRadius * uPxPerUnit / mix(d, 1.0, uOrtho);",
+		"  px = clamp(px, 1.0, 160.0);",
+		"  float stepPx = px / float(TAPS);",
+		"  float sigma = px * 0.5;",
+		"  float sum = 0.0, wsum = 0.0, wall = 0.0;",
+		"  for (int i = -TAPS; i <= TAPS; i++) {",
+		"    float x = float(i) * stepPx;",
+		"    float w = exp(-0.5 * x * x / (sigma * sigma));",
+		"    wall += w;",
+		"    vec4 c = texture2D(uSrc, uv + uStep * x);",
+		"    if (c.a < 0.002) continue;",
+		"    float v = unpackDepth(c) * uFar;",
+		"    if (abs(v - d) > uClampDist) continue;",
+		"    sum += v * w; wsum += w;",
+		"  }",
+		"  coverage = wsum / wall;",
+		"  return sum / max(wsum, 1e-6);",
+		"}"
+	].join("\n");
+
+	this._carveBlurProgram = this._carveCompile(quadVS, [
+		blurGLSL,
+		"void main(void) {",
+		"  float d, coverage; bool onModel;",
+		"  float b = blurAt(vUV, d, onModel, coverage);",
+		"  if (!onModel) { gl_FragColor = vec4(0.0); return; }",
+		"  gl_FragColor = vec4(packDepth(clamp(b / uFar, 0.0, 0.9999)).rgb, max(coverage, 0.004));", // alpha carries coverage to the next pass
+		"}"
+	].join("\n"));
+
+	// Second blur axis, then the tint: how far this pixel lies below its smoothed surroundings
+	this._carveTintProgram = this._carveCompile(quadVS, [
+		blurGLSL,
+		"uniform float uUnitsToModel;",  // view units -> model units (mm)
+		"uniform float uLow;",           // cut depth (mm) where the tint starts
+		"uniform float uHigh;",          // cut depth (mm) where it is full
+		"uniform vec3  uColor;",
+		"uniform float uOpacity;",
+		"void main(void) {",
+		"  float d, coverage; bool onModel;",
+		"  float b = blurAt(vUV, d, onModel, coverage);",
+		"  if (!onModel) discard;",
+		"  coverage *= texture2D(uSrc, vUV).a;",
+		"  float cut = (d - b) * uUnitsToModel;",
+		// Where much of the kernel fell off the model or across a step, the comparison is one-sided
+		// and a rounded edge would read as a cut, so fade the tint out there
+		"  float a = smoothstep(uLow, uHigh, cut) * smoothstep(0.55, 0.85, coverage) * uOpacity;",
+		"  if (a <= 0.0) discard;",
+		"  gl_FragColor = vec4(uColor, a);",
+		"}"
+	].join("\n"));
+
+	this._carveQuad = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, this._carveQuad);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+},
+
+// Colour target (+ optional depth buffer) the size of the canvas, recreated when the canvas resizes
+_carveTarget : function (old, width, height, withDepth) {
+	var gl = this.ui.gl;
+	if (old && old.width === width && old.height === height) return old;
+	if (old) {
+		gl.deleteTexture(old.texture);
+		if (old.depth) gl.deleteRenderbuffer(old.depth);
+		gl.deleteFramebuffer(old.fbo);
+	}
+	var t = { width: width, height: height };
+	t.texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, t.texture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+	// Packed depth cannot be interpolated, so sample it exactly
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+	t.fbo = gl.createFramebuffer();
+	gl.bindFramebuffer(gl.FRAMEBUFFER, t.fbo);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t.texture, 0);
+	if (withDepth) {
+		t.depth = gl.createRenderbuffer();
+		gl.bindRenderbuffer(gl.RENDERBUFFER, t.depth);
+		// DEPTH_STENCIL is 24-bit depth in practice; DEPTH_COMPONENT16 is too coarse at this near/far range
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, width, height);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, t.depth);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	}
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	return t;
+},
+
+// Runs inside _drawScene, after the models are drawn and before Nexus.endFrame, so it reuses this
+// frame's nexus selection and lands in screenshots
+_drawCarvingHighlight : function () {
+	var gl     = this.ui.gl;
+	var width  = this.ui.width;
+	var height = this.ui.height;
+	var xform  = this.xform;
+	var meshes    = this._scene.meshes;
+	var instances = this._scene.modelInstances;
+	var space     = this._scene.space;
+	var opts      = this._carve;
+	var far       = space.cameraNearFar[1];
+
+	if (!this._carveDepthProgram) this._carveCreatePrograms();
+	this._carveDepthTarget = this._carveTarget(this._carveDepthTarget, width, height, true);
+	this._carveBlurTarget  = this._carveTarget(this._carveBlurTarget,  width, height, false);
+
+	// 1. linear depth of every visible nexus model
+	var prog = this._carveDepthProgram;
+	gl.bindFramebuffer(gl.FRAMEBUFFER, this._carveDepthTarget.fbo);
+	gl.viewport(0, 0, width, height);
+	gl.clearColor(0.0, 0.0, 0.0, 0.0);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.enable(gl.DEPTH_TEST);
+	gl.disable(gl.BLEND);
+	gl.useProgram(prog);
+	gl.uniform1f(prog.loc.uFar, far);
+	for (var inst in instances) {
+		var instance = instances[inst];
+		var mesh     = meshes[instance.mesh];
+		if (!mesh || !mesh.renderable || !instance.visible) continue;
+		if (mesh.mType !== "nexus" || !mesh.renderable.isReady || instance.rendermode !== "FILL") continue;
+
+		xform.model.push();
+		xform.model.multiply(space.transform.matrix);
+		xform.model.multiply(instance.transform.matrix);
+		xform.model.multiply(mesh.transform.matrix);
+		gl.uniformMatrix4fv(prog.loc.uWorldViewProjectionMatrix, false, xform.modelViewProjectionMatrix);
+		gl.uniformMatrix4fv(prog.loc.uWorldViewMatrix, false, xform.modelViewMatrix);
+		mesh.renderable.setPrimitiveMode("FILL");
+		mesh.renderable.renderNodes(); // the main pass already ran traversal for this view
+		xform.model.pop();
+	}
+
+	// pixels per view unit, from the projection's vertical scale
+	var P = xform.projectionMatrix;
+	var ortho = (space.cameraType == "orthographic");
+	var unitsPerModel = this.sceneRadiusInv; // the scene is scaled to unit radius
+	var radius = opts.width * unitsPerModel;
+
+	function setBlurUniforms(p, stepX, stepY) {
+		gl.uniform1i(p.loc.uDepth, 0);
+		gl.uniform1i(p.loc.uSrc, 1);
+		gl.uniform2f(p.loc.uStep, stepX, stepY);
+		gl.uniform1f(p.loc.uFar, far);
+		gl.uniform1f(p.loc.uRadius, radius);
+		gl.uniform1f(p.loc.uPxPerUnit, P[5] * height * 0.5);
+		gl.uniform1f(p.loc.uOrtho, ortho ? 1.0 : 0.0);
+		gl.uniform1f(p.loc.uClampDist, opts.depth * 3.0 * unitsPerModel); // a cut is a few mm, not a relief's depth
+	}
+
+	gl.disable(gl.DEPTH_TEST);
+	gl.depthMask(false);
+	gl.bindBuffer(gl.ARRAY_BUFFER, this._carveQuad);
+	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(0);
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, this._carveDepthTarget.texture);
+
+	// 2. horizontal blur
+	prog = this._carveBlurProgram;
+	gl.bindFramebuffer(gl.FRAMEBUFFER, this._carveBlurTarget.fbo);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.useProgram(prog);
+	setBlurUniforms(prog, 1.0 / width, 0.0);
+	gl.activeTexture(gl.TEXTURE1);
+	gl.bindTexture(gl.TEXTURE_2D, this._carveDepthTarget.texture);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+	// 3. vertical blur and tint, blended over the rendered scene
+	prog = this._carveTintProgram;
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.useProgram(prog);
+	setBlurUniforms(prog, 0.0, 1.0 / height);
+	gl.uniform1f(prog.loc.uUnitsToModel, 1.0 / unitsPerModel);
+	gl.uniform1f(prog.loc.uLow, opts.depth * 0.25);
+	gl.uniform1f(prog.loc.uHigh, opts.depth);
+	gl.uniform3fv(prog.loc.uColor, opts.color);
+	gl.uniform1f(prog.loc.uOpacity, opts.opacity);
+	gl.bindTexture(gl.TEXTURE_2D, this._carveBlurTarget.texture); // still on unit 1
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+	// GLstate cleanup
+	gl.disable(gl.BLEND);
+	gl.disableVertexAttribArray(0);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+	gl.useProgram(null);
+	gl.depthMask(true);
+	gl.enable(gl.DEPTH_TEST);
+	gl.viewport(0, 0, width, height);
+},
+
 _drawNull : function () {
 	var gl = this.ui.gl;
 	gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -2689,6 +2988,12 @@ onInitialize : function () {
 	this._sceneBboxMax = [0.0, 0.0, 0.0];
 	this._sceneBboxCenter = [0.0, 0.0, 0.0];
 	this._sceneBboxDiag = 0.0;
+
+	// VCP: carving highlight (off until the page turns it on)
+	//   width:   groove width it looks for, model units (mm)
+	//   depth:   cut depth that gets the full tint, model units (mm); the tint starts at a quarter of it
+	//   color:   RGB tint; opacity: tint strength at full depth
+	this._carve = { enabled: false, width: 8.0, depth: 1.0, color: [0.86, 0.08, 0.06], opacity: 0.85 };
 },
 
 installDefaultShaders : function () {
@@ -4040,6 +4345,30 @@ setTrackballLock: function(newState) {
 
 isTrackballLockEnabled: function() {
 	return this._scene.trackball.locked;
+},
+
+//-----------------------------------------------------------------------------
+// VCP: carving highlight
+
+enableCarvingHighlight: function(on) {
+	this._carve.enabled = !!on;
+	this.repaint();
+},
+
+isCarvingHighlightEnabled: function() {
+	return this._carve.enabled;
+},
+
+// options: any of { width, depth, color, opacity } (see onInitialize)
+setCarvingHighlight: function(options) {
+	for (var k in options)
+		if (k in this._carve && k !== "enabled") this._carve[k] = options[k];
+	this.repaint();
+},
+
+getCarvingHighlight: function() {
+	var c = this._carve;
+	return { enabled: c.enabled, width: c.width, depth: c.depth, color: c.color.slice(), opacity: c.opacity };
 },
 
 //-----------------------------------------------------------------------------
