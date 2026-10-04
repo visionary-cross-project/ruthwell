@@ -22,6 +22,13 @@ model: "/ruthwell/assets/models/runes_right_high.nxz"
           <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&amp;display=swap">
           <style>
             .panel-description .runes { font-family: "Noto Sans Runic", "Segoe UI Historic", sans-serif; font-size: 1.4rem; line-height: 1.5; letter-spacing: 0.08em; }
+            /* Laid out as on the stone: the top border across, the left and right borders side by side beneath it.
+               The source keeps reading order (top, right, left). */
+            .runes-layout { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "top top" "left right"; column-gap: 1.5rem; }
+            .runes-top { grid-area: top; text-align: center; }
+            .runes-left { grid-area: left; text-align: center; }
+            .runes-right { grid-area: right; text-align: center; }
+            .runes-layout h3 { font-size: 0.85rem; margin-bottom: 0.25rem; }
           </style>
 
           <div class="panel-description">
@@ -30,71 +37,79 @@ model: "/ruthwell/assets/models/runes_right_high.nxz"
               Bracketed dots mark runes that are damaged or missing.
             </p>
 
-            <h3>Top border</h3>
-            <p class="runes" lang="ang-Runr">
-                ᚷᛖᚱᛖ
-            </p>
+            <div class="runes-layout">
+            <div class="runes-border runes-top">
+              <h3>Top border</h3>
+              <p class="runes" lang="ang-Runr">
+                  ᚷᛖᚱᛖ
+              </p>
+            </div>
 
-            <h3>Right border</h3>
-            <p class="runes" lang="ang-Runr">
-                ᛞᚫ<br>
-                ᚻᛁ<br>
-                ᚾᚫ<br>
-                ᚸᚩ<br>
-                ᛞᚪ<br>
-                ᛚᛗ<br>
-                ᛖᛇ<br>
-                ᛏᛏᛁ<br>
-                ᚷ·ᚦ<br>
-                ᚪᚻ<br>
-                ᛖᚹ<br>
-                ᚪᛚ<br>
-                ᛞᛖ<br>
-                ᚩᚾ<br>
-                ᚸᚪ<br>
-                ᛚᚸ<br>
-                ᚢᚷ<br>
-                ᛁᛋᛏ<br>
-                ᛁᚸᚪ<br>
-                ᛗᚩᛞ<br>
-                ᛁᚷᚠ<br>
-                [...]<br>
-                [....]<br>
-                ᛗᛖᚾ<br>
-                [...]
-            </p>
+            <div class="runes-border runes-right">
+              <h3>Right border</h3>
+              <p class="runes" lang="ang-Runr">
+                  ᛞᚫ<br>
+                  ᚻᛁ<br>
+                  ᚾᚫ<br>
+                  ᚸᚩ<br>
+                  ᛞᚪ<br>
+                  ᛚᛗ<br>
+                  ᛖᛇ<br>
+                  ᛏᛏᛁ<br>
+                  ᚷ·ᚦ<br>
+                  ᚪᚻ<br>
+                  ᛖᚹ<br>
+                  ᚪᛚ<br>
+                  ᛞᛖ<br>
+                  ᚩᚾ<br>
+                  ᚸᚪ<br>
+                  ᛚᚸ<br>
+                  ᚢᚷ<br>
+                  ᛁᛋᛏ<br>
+                  ᛁᚸᚪ<br>
+                  ᛗᚩᛞ<br>
+                  ᛁᚷᚠ<br>
+                  [...]<br>
+                  [....]<br>
+                  ᛗᛖᚾ<br>
+                  [...]
+              </p>
+            </div>
 
-            <h3>Left border</h3>
-            <p class="runes" lang="ang-Runr">
-                [...]<br>
-                ᛁᚳᚱ<br>
-                ᛁᛁᚳᚾ<br>
-                ᚫᚸᚣ<br>
-                ᚾᛁᛝ<br>
-                ᚳ·ᚻᛠ<br>
-                ᚠᚢᚾ<br>
-                ᚫᛋᚻ<br>
-                ᛚᚪᚠ<br>
-                ᚪᚱᛞ<br>
-                ᚻᚫᛚ<br>
-                ᛞᚪᛁᚳ<br>
-                ᚾᛁᛞᚩ<br>
-                ᚱᛋᛏᚫ<br>
-                [..]ᛋᛗ<br>
-                ᚫᚱᚫ[.]<br>
-                ᚢᚢᛝ<br>
-                ᚸᛖᛏ<br>
-                ᛗᛖᚾ<br>
-                ᛒᚪᚫᛏ<br>
-                ᚸᚪᛞ<br>
-                [..]ᛁᚳ<br>
-                [...]<br>
-                ᛗᛁᚦᛒ<br>
-                [.]ᚩᛞᚫ<br>
-                ᛒᛁᛋᛏ<br>
-                ᛖᛗᛁ<br>
-                [.]ᛒᛁ
-            </p>
+            <div class="runes-border runes-left">
+              <h3>Left border</h3>
+              <p class="runes" lang="ang-Runr">
+                  [...]<br>
+                  ᛁᚳᚱ<br>
+                  ᛁᛁᚳᚾ<br>
+                  ᚫᚸᚣ<br>
+                  ᚾᛁᛝ<br>
+                  ᚳ·ᚻᛠ<br>
+                  ᚠᚢᚾ<br>
+                  ᚫᛋᚻ<br>
+                  ᛚᚪᚠ<br>
+                  ᚪᚱᛞ<br>
+                  ᚻᚫᛚ<br>
+                  ᛞᚪᛁᚳ<br>
+                  ᚾᛁᛞᚩ<br>
+                  ᚱᛋᛏᚫ<br>
+                  [..]ᛋᛗ<br>
+                  ᚫᚱᚫ[.]<br>
+                  ᚢᚢᛝ<br>
+                  ᚸᛖᛏ<br>
+                  ᛗᛖᚾ<br>
+                  ᛒᚪᚫᛏ<br>
+                  ᚸᚪᛞ<br>
+                  [..]ᛁᚳ<br>
+                  [...]<br>
+                  ᛗᛁᚦᛒ<br>
+                  [.]ᚩᛞᚫ<br>
+                  ᛒᛁᛋᛏ<br>
+                  ᛖᛗᛁ<br>
+                  [.]ᛒᛁ
+              </p>
+            </div>
+            </div>
 
             <p>
               Transliteration, translation, and commentary to come.
