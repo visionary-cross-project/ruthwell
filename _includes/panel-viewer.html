@@ -8,8 +8,8 @@
 {%- assign face = page.face | default: "south" -%}
 {%- case face -%}
   {%- when "north" -%}{%- assign start_phi = "180.0" -%}
-  {%- when "east" -%}{%- assign start_phi = "-90.0" -%}
-  {%- when "west" -%}{%- assign start_phi = "90.0" -%}
+  {%- when "east" -%}{%- assign start_phi = "90.0" -%}
+  {%- when "west" -%}{%- assign start_phi = "-90.0" -%}
   {%- else -%}{%- assign start_phi = "0.0" -%}
 {%- endcase -%}
       <div id="viewerWrap">

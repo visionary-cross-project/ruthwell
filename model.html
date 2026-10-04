@@ -295,6 +295,39 @@ viewer: true
       <p>
         This section can contain the poetic inscription, transcription, translation, or commentary.
       </p>
+
+      <p class="panel-intro">
+        Select a direction to turn the model. Select a rune band to highlight it on the cross.
+      </p>
+
+      <div class="direction-row">
+        <button class="direction-card active" type="button" data-direction="south" onclick="setActiveDirection('south')">
+          <span>South</span>
+        </button>
+
+        <button class="direction-card" type="button" data-direction="north" onclick="setActiveDirection('north')">
+          <span>North</span>
+        </button>
+
+        <button class="direction-card" type="button" data-direction="west" onclick="setActiveDirection('west')">
+          <span>West</span>
+        </button>
+
+        <button class="direction-card" type="button" data-direction="east" onclick="setActiveDirection('east')">
+          <span>East</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel-section">
+      <div class="panel-links">
+        <div class="panel-item" data-panel-id="none">
+          <button type="button" class="panel-name" onclick="clearPanelSelection()">
+            None
+          </button>
+          <p>Clear the selected highlight.</p>
+        </div>
+      </div>
     </section>
 
     <section class="panel-section">
@@ -850,7 +883,7 @@ var panelPoses = {
   christ:       [-181.055, 5.271, -0.003, 0.163, -0.047, 0.470],
   crucifixion:  [0.000, 0.000, 0.000, -0.753, 0.079, 0.389],
   eagle:        [-181.055, 5.271, 0.002, 0.926, -0.019, 0.120],
-  east:         [-90.757, 21.199, -0.086, -0.005, -0.001, 1.473],
+  east:         [90.137, 7.563, 0.076, -0.067, 0.020, 1.369],
   egypt:        [-181.055, 5.271, 0.004, -0.463, -0.078, 0.261],
   john:         [-181.055, 5.271, -0.012, 0.521, -0.027, 0.239],
   john_eagle:   [0.000, 0.000, 0.001, 0.927, 0.048, 0.146],
@@ -859,7 +892,7 @@ var panelPoses = {
   nativity:     [-181.055, 5.271, 0.008, -0.795, -0.083, 0.433],
   paul_antony:  [-181.055, 5.271, -0.002, -0.207, -0.057, 0.289],
   visitation:   [0.000, 0.000, -0.010, 0.504, 0.059, 0.255],
-  west:         [90.137, 7.563, 0.076, -0.067, 0.020, 1.369],
+  west:         [-90.757, 21.199, -0.086, -0.005, -0.001, 1.473],
 
   // Crossbar view (front) and the same view flipped to the back
   snake:        [0.000, 0.000, 0.003, 0.812, 0.055, 0.208],
@@ -897,8 +930,9 @@ var panelPoses = {
       clearHighlights();
       clearActivePanelItem();
 
-      var noneItem = document.querySelector('[data-panel-id="none"]');
-      if (noneItem) noneItem.classList.add("active");
+      document.querySelectorAll('[data-panel-id="none"]').forEach(function (item) {
+        item.classList.add("active");
+      });
 
       updateUrlState();
     }
@@ -937,18 +971,18 @@ var panelPoses = {
       var my_pos = presenter.getTrackballPosition();
 
       switch (direction) {
-        // Turntable phi is positive turning the west face to the viewer (cf. the west and east panel poses)
+        // Turntable phi is positive turning the east face (+x, where the east cut lies) to the viewer
         case "south":
           my_pos[0] = 0;
           break;
         case "east":
-          my_pos[0] = -90;
+          my_pos[0] = 90;
           break;
         case "north":
           my_pos[0] = 180;
           break;
         case "west":
-          my_pos[0] = 90;
+          my_pos[0] = -90;
           break;
         default:
           return;
@@ -1144,11 +1178,10 @@ var panelPoses = {
         button.classList.remove("active");
       });
 
-      var activeButton = document.querySelector('[data-direction="' + direction + '"]');
-
-      if (activeButton) {
-        activeButton.classList.add("active");
-      }
+      // Both tabs carry a copy of the direction buttons
+      document.querySelectorAll('[data-direction="' + direction + '"]').forEach(function (button) {
+        button.classList.add("active");
+      });
 
       faceDirection(direction);
     }
