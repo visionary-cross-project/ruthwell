@@ -1,0 +1,348 @@
+{% comment %}
+  Shared viewer for the panel pages: the same toolbar, light pad and move pad as model.html, with no hotspots.
+
+  Front matter on the including page:
+    face:  south | north | east | west — the face the placeholder cross turns to on load and on Home
+    model: optional URL of the panel's own cut. Until it is set, the page shows the whole cross as a placeholder.
+{% endcomment %}
+{%- assign face = page.face | default: "south" -%}
+{%- case face -%}
+  {%- when "north" -%}{%- assign start_phi = "180.0" -%}
+  {%- when "east" -%}{%- assign start_phi = "-90.0" -%}
+  {%- when "west" -%}{%- assign start_phi = "90.0" -%}
+  {%- else -%}{%- assign start_phi = "0.0" -%}
+{%- endcase -%}
+      <div id="viewerWrap">
+        <div id="3dhop" class="tdhop" onmousedown="if (event.preventDefault) event.preventDefault()">
+          <div id="tdhlg"></div>
+
+          <div id="toolbar">
+            <img id="home" title="Reset View" src="/ruthwell/3dhop/skins/dark/home.png" /><br/>
+            <img id="zoomin" title="Zoom In" src="/ruthwell/3dhop/skins/dark/zoomin.png" /><br/>
+            <img id="zoomout" title="Zoom Out" src="/ruthwell/3dhop/skins/dark/zoomout.png" /><br/>
+            <img id="light" title="Enable Light Control" src="/ruthwell/3dhop/skins/dark/lightcontrol.png" /><br/>
+            <img id="lighting" title="Disable Lighting" src="/ruthwell/3dhop/skins/dark/lighting.png" /><br/>
+            <img id="color" title="Disable Colour" src="/ruthwell/3dhop/skins/dark/color.png" /><br/>
+            <img id="screenshot" title="Save Screenshot" src="/ruthwell/3dhop/skins/dark/screenshot.png" />
+          </div>
+
+          <!-- Light direction pad: shown while light control is on; drag on the sphere to place the light -->
+          <div id="lightPad" title="Drag to move the light">
+            <canvas id="lightPadCanvas"></canvas>
+          </div>
+          <style>
+            #lightPad { display: none; position: absolute; right: 14px; bottom: 72px; z-index: 50; width: 110px; height: 110px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); cursor: crosshair; touch-action: none; }
+            #lightPad canvas { width: 100%; height: 100%; display: block; }
+          </style>
+
+          <div id="loadingOverlay">
+            <div class="loading-box">
+              <div class="spinner"></div>
+              <p id="loadingText">Loading model…</p>
+            </div>
+          </div>
+
+          <div id="movePad" aria-label="Move view">
+            <table id="mvc_table">
+              <tbody>
+                <tr>
+                  <td>
+                    <img class="move_ up" id="move_up" title="Move Up" src="/ruthwell/assets/img/Arrow.png" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <img class="move_ down" id="move_down" title="Move Down" src="/ruthwell/assets/img/Arrow.png" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <button id="fullscreen-btn" title="Toggle Full Screen" onclick="toggleFullscreen()">
+            <img src="/ruthwell/3dhop/skins/dark/full.png" alt="Full Screen" />
+          </button>
+
+          <canvas id="draw-canvas"></canvas>
+        </div>
+      </div>
+
+      <script>
+        var presenter = null;
+
+        function setup3dhop() {
+          presenter = new Presenter("draw-canvas");
+
+          presenter.setScene({
+{%- if page.model %}
+            meshes: {
+              panel: { url: "{{ page.model }}" }
+            },
+
+            modelInstances: {
+              panel: { mesh: "panel", color: [0.8, 0.7, 0.75], visible: true }
+            },
+{%- else %}
+            // Placeholder until this panel has its own cut: the whole cross, as on model.html
+            meshes: {
+              ruthwell_top: { url: "/ruthwell/assets/models/50_top_dec69.nxz" },
+              ruthwell_bottom: { url: "/ruthwell/assets/models/50_bottom_dec69.nxz" }
+            },
+
+            modelInstances: {
+              ruthwell_top: { mesh: "ruthwell_top", color: [0.8, 0.7, 0.75], visible: true },
+              ruthwell_bottom: { mesh: "ruthwell_bottom", color: [0.8, 0.7, 0.75], visible: true }
+            },
+
+            // Centre and scale on the whole cross, not just the first half
+            space: {
+              centerMode: "explicit",
+              explicitCenter: [-7.331, 2616.983, 3.565],
+              radiusMode: "explicit",
+              explicitRadius: 2673.610
+            },
+{%- endif %}
+
+            trackball: {
+              type: TurntablePanTrackball,
+              trackOptions: {
+                startPhi: {{ start_phi }},
+                startTheta: 0.0,
+                startDistance: 2.0,
+                minMaxPhi: [-180, 180],
+                minMaxTheta: [-85.0, 85.0],
+                minMaxDist: [0.005, 140.0],
+                startPanX: 0.0,
+                startPanY: 0.0,
+                startPanZ: 0.0,
+                minMaxPanX: [-5.0, 5.0],
+                minMaxPanY: [-20.0, 20.0],
+                minMaxPanZ: [-5.0, 5.0]
+              }
+            }
+          });
+
+          // Render at the display's real pixel density (bound after init3dhop's own resize handler, so it runs last)
+          presenter.ui._getMouseClientPos = getMouseCanvasPos;
+          // presenter.onDrag turns raw cursor deltas into rotation, so report them in CSS pixels to keep drag speed unchanged
+          Object.defineProperty(presenter.ui, "cursorDeltaX", { get: function () { return this._cursorDeltaPos[0] / pixelRatio(); } });
+          Object.defineProperty(presenter.ui, "cursorDeltaY", { get: function () { return this._cursorDeltaPos[1] / pixelRatio(); } });
+          jQuery(window).on("resize", fitCanvasToDisplay);
+          fitCanvasToDisplay();
+
+          // Keep Nexus refining while the view is still; its per-frame draw budget still bounds the cost
+          presenter.setNexusMinFps(0);
+
+          initLightPad();
+
+          presenter.resetTrackball();
+          setTimeout(function () {
+            presenter.repaint();
+          }, 120);
+        }
+
+        // 3DHOP sizes the canvas in CSS pixels, which renders blurry on high-DPI screens
+        var MAX_PIXEL_RATIO = 3;
+        // Nexus refines until geometric error is below this many CSS pixels (3DHOP default: 1.0)
+        var NEXUS_ERROR_CSS_PX = 0.8;
+
+        function pixelRatio() {
+          return Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+        }
+
+        function fitCanvasToDisplay() {
+          var canvas = document.getElementById("draw-canvas");
+          var ratio = pixelRatio();
+          var w = Math.round(canvas.clientWidth * ratio);
+          var h = Math.round(canvas.clientHeight * ratio);
+          if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w;
+            canvas.height = h;
+          }
+          // Nexus measures error in canvas pixels, so scale the target to keep the download in proportion
+          presenter.setNexusTargetError(NEXUS_ERROR_CSS_PX * ratio);
+          presenter.repaint();
+        }
+
+        // SpiderGL's version mixes CSS-pixel offsets with canvas-pixel height; map both axes into canvas pixels
+        function getMouseCanvasPos(e) {
+          var canvas = this._canvas;
+          var rect = canvas.getBoundingClientRect();
+          var p = e.changedTouches ? e.changedTouches[0] : e;
+          var x = (p.clientX - rect.left) * canvas.width / rect.width;
+          var y = canvas.height - (p.clientY - rect.top) * canvas.height / rect.height;
+          return [x, y, x < 0 || x >= canvas.width || y < 0 || y >= canvas.height, e.timeStamp];
+        }
+
+        // Light pad: a shaded sphere lit from the current light direction, with a marker where the light sits.
+        // The light comes from (-d.x, -d.y) in view space, where d is presenter._lightDirection (y up).
+        function initLightPad() {
+          var canvas = document.getElementById("lightPadCanvas");
+
+          // Keep the pad in sync however the light moves, including dragging on the model
+          var rotateLight = presenter.rotateLight;
+          presenter.rotateLight = function (x, y) {
+            rotateLight.call(presenter, x, y);
+            drawLightPad();
+          };
+
+          function placeLight(e) {
+            var rect = canvas.getBoundingClientRect();
+            var u = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            var v = 1 - ((e.clientY - rect.top) / rect.height) * 2;
+            // rotateLight doubles its arguments and clamps to the unit disc
+            presenter.rotateLight(u / 2, v / 2);
+          }
+
+          var dragging = false;
+          canvas.addEventListener("pointerdown", function (e) {
+            dragging = true;
+            placeLight(e);
+            // Keep receiving moves if the pointer leaves the pad mid-drag
+            try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+          });
+          canvas.addEventListener("pointermove", function (e) {
+            if (dragging) placeLight(e);
+          });
+          canvas.addEventListener("pointerup", function () { dragging = false; });
+          canvas.addEventListener("pointercancel", function () { dragging = false; });
+
+          drawLightPad();
+        }
+
+        function drawLightPad() {
+          var canvas = document.getElementById("lightPadCanvas");
+          var size = canvas.clientWidth || 110;
+          var ratio = pixelRatio();
+          if (canvas.width !== Math.round(size * ratio)) {
+            canvas.width = Math.round(size * ratio);
+            canvas.height = Math.round(size * ratio);
+          }
+          var ctx = canvas.getContext("2d");
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+          ctx.clearRect(0, 0, size, size);
+
+          var c = size / 2;
+          var r = size / 2 - 2;
+          var d = presenter._lightDirection;
+          var lx = c - d[0] * r;
+          var ly = c + d[1] * r;
+
+          var shade = ctx.createRadialGradient(lx, ly, 2, c, c, r * 1.15);
+          shade.addColorStop(0, "#f8f8f8");
+          shade.addColorStop(1, "#111");
+          ctx.beginPath();
+          ctx.arc(c, c, r, 0, 2 * Math.PI);
+          ctx.fillStyle = shade;
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(lx, ly, 5, 0, 2 * Math.PI);
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = "#ffd400";
+          ctx.stroke();
+        }
+
+        function toggleFullscreen() {
+          var el = document.getElementById("3dhop");
+          var btn = document.querySelector("#fullscreen-btn img");
+          if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+            (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+            btn.src = "/ruthwell/3dhop/skins/dark/full.png";
+            btn.alt = "Full Screen";
+          } else {
+            (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
+            btn.src = "/ruthwell/3dhop/skins/dark/full_on.png";
+            btn.alt = "Exit Full Screen";
+          }
+        }
+
+        // 3dhop/js/init.js calls this for each #toolbar img, so the images carry no onclick of their own
+        function actionsToolbar(action) {
+          if (!presenter) return;
+
+          if (action === "home") presenter.resetTrackball();
+          else if (action === "zoomin") presenter.zoomIn();
+          else if (action === "zoomout") presenter.zoomOut();
+          else if (action === "light") presenter.enableLightTrackball(!presenter.isLightTrackballEnabled());
+          else if (action === "lighting") presenter.enableSceneLighting(!presenter.isSceneLightingEnabled());
+          else if (action === "color") presenter.setInstanceSolidColor(HOP_ALL, !presenter.isInstanceSolidColorEnabled(), true);
+          else if (action === "screenshot") presenter.saveScreenshot();
+          else if (action === "move_up" || action === "move_down") step(action);
+
+          updateToolbarIcons();
+        }
+
+        // Swap toolbar icons to match the current light and colour state
+        function updateToolbarIcons() {
+          var skin = "/ruthwell/3dhop/skins/dark/";
+          var lightOn = presenter.isLightTrackballEnabled();
+          var lightingOn = presenter.isSceneLightingEnabled();
+          var solidColor = presenter.isInstanceSolidColorEnabled();
+
+          var light = document.getElementById("light");
+          light.src = skin + (lightOn ? "lightcontrol_on.png" : "lightcontrol.png");
+          light.title = lightOn ? "Disable Light Control" : "Enable Light Control";
+          document.getElementById("lightPad").style.display = lightOn ? "block" : "none";
+          if (lightOn) drawLightPad();
+
+          var lighting = document.getElementById("lighting");
+          lighting.src = skin + (lightingOn ? "lighting.png" : "lighting_off.png");
+          lighting.title = lightingOn ? "Disable Lighting" : "Enable Lighting";
+
+          var color = document.getElementById("color");
+          color.src = skin + (solidColor ? "color_on.png" : "color.png");
+          color.title = solidColor ? "Enable Colour" : "Disable Colour";
+        }
+
+        function step(action) {
+          var my_pos = presenter.getTrackballPosition();
+          var vstep = 0.10;
+
+          if (action === "move_up") my_pos[3] += vstep;
+          else if (action === "move_down") my_pos[3] -= vstep;
+
+          presenter.animateToTrackballPosition(my_pos);
+        }
+
+        function showLoading(message) {
+          var overlay = document.getElementById("loadingOverlay");
+          var text = document.getElementById("loadingText");
+          if (text && message) text.textContent = message;
+          if (overlay) overlay.style.display = "flex";
+        }
+
+        function hideLoading() {
+          var overlay = document.getElementById("loadingOverlay");
+          if (overlay) overlay.style.display = "none";
+        }
+
+        function hookMovePad() {
+          ["move_up", "move_down"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              actionsToolbar(id);
+            });
+          });
+        }
+
+        $(document).ready(function () {
+          showLoading("Loading model...");
+          init3dhop();
+          setup3dhop();
+          hookMovePad();
+
+          setTimeout(hideLoading, 1800);
+        });
+
+        window.addEventListener("resize", function () {
+          if (presenter) presenter.repaint();
+        });
+      </script>

@@ -80,20 +80,20 @@ viewer: true
       </p>
 
       <div class="direction-row">
-        <button class="direction-card active" type="button" data-direction="front" onclick="setActiveDirection('front')">
-          <span>Front</span>
+        <button class="direction-card active" type="button" data-direction="south" onclick="setActiveDirection('south')">
+          <span>South</span>
         </button>
 
-        <button class="direction-card" type="button" data-direction="back" onclick="setActiveDirection('back')">
-          <span>Back</span>
+        <button class="direction-card" type="button" data-direction="north" onclick="setActiveDirection('north')">
+          <span>North</span>
         </button>
 
-        <button class="direction-card" type="button" data-direction="left" onclick="setActiveDirection('left')">
-          <span>Left</span>
+        <button class="direction-card" type="button" data-direction="west" onclick="setActiveDirection('west')">
+          <span>West</span>
         </button>
 
-        <button class="direction-card" type="button" data-direction="right" onclick="setActiveDirection('right')">
-          <span>Right</span>
+        <button class="direction-card" type="button" data-direction="east" onclick="setActiveDirection('east')">
+          <span>East</span>
         </button>
       </div>
     </section>
@@ -301,14 +301,16 @@ viewer: true
       <div class="panel-links">
         <div class="panel-item" data-panel-id="runes_left">
           <button type="button" class="panel-name" onclick="highlightPanel('runes_left')" onmouseover="hoverPanel('runes_left')" onmouseout="unhoverPanel()">
-            Runes Left
+            West Runes
           </button>
+          <p>Click <a href="poem/west_runes.html">here</a> to view in detail.</p>
         </div>
 
         <div class="panel-item" data-panel-id="runes_right">
           <button type="button" class="panel-name" onclick="highlightPanel('runes_right')" onmouseover="hoverPanel('runes_right')" onmouseout="unhoverPanel()">
-            Runes Right
+            East Runes
           </button>
+          <p>Click <a href="poem/east_runes.html">here</a> to view in detail.</p>
         </div>
       </div>
     </section>
@@ -812,29 +814,32 @@ function showHighlight(id) {
 }
 
 var panelToFace = {
-  john_eagle: "front",
-  whale: "front",
-  snake: "front",
-  archer: "front",
-  visitation: "front",
-  magdalene: "front",
-  blind: "front",
-  annunciation: "front",
-  crucifixion: "front",
+  john_eagle: "south",
+  whale: "south",
+  snake: "south",
+  archer: "south",
+  visitation: "south",
+  magdalene: "south",
+  blind: "south",
+  annunciation: "south",
+  crucifixion: "south",
 
-  west: "left",
+  west: "west",
 
-  eagle: "back",
-  rooster: "back",
-  lamb: "back",
-  matthew: "back",
-  john: "back",
-  christ: "back",
-  paul_antony: "back",
-  egypt: "back",
-  nativity: "back",
+  eagle: "north",
+  rooster: "north",
+  lamb: "north",
+  matthew: "north",
+  john: "north",
+  christ: "north",
+  paul_antony: "north",
+  egypt: "north",
+  nativity: "north",
 
-  east: "right"
+  east: "east",
+
+  runes_left: "west",
+  runes_right: "east"
 };
 
 // Zoomed trackball pose per hotspot: [phi, theta, panX, panY, panZ, distance]
@@ -922,7 +927,9 @@ var panelPoses = {
     }
 
     var activeFace = null;
-    var validFaces = ["front", "back", "left", "right"];
+    var validFaces = ["south", "north", "west", "east"];
+    // Older links used front/back/left/right
+    var legacyFaces = { front: "south", back: "north", left: "west", right: "east" };
 
     function faceDirection(direction) {
       if (!presenter) return;
@@ -930,17 +937,18 @@ var panelPoses = {
       var my_pos = presenter.getTrackballPosition();
 
       switch (direction) {
-        case "front":
+        // Turntable phi is positive turning the west face to the viewer (cf. the west and east panel poses)
+        case "south":
           my_pos[0] = 0;
           break;
-        case "right":
-          my_pos[0] = 90;
+        case "east":
+          my_pos[0] = -90;
           break;
-        case "back":
+        case "north":
           my_pos[0] = 180;
           break;
-        case "left":
-          my_pos[0] = -90;
+        case "west":
+          my_pos[0] = 90;
           break;
         default:
           return;
@@ -978,6 +986,7 @@ var panelPoses = {
         var pair = kv.split("=");
         if (pair[0]) params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || "");
       });
+      if (legacyFaces[params.face]) params.face = legacyFaces[params.face];
       if (params.face && validFaces.indexOf(params.face) !== -1) {
         faceDirection(params.face);
       }
