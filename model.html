@@ -14,6 +14,8 @@ viewer: true
           <img id="zoomin" title="Zoom In" src="/ruthwell/3dhop/skins/dark/zoomin.png" onclick="actionsToolbar('zoomin')" /><br/>
           <img id="zoomout" title="Zoom Out" src="/ruthwell/3dhop/skins/dark/zoomout.png" onclick="actionsToolbar('zoomout')" /><br/>
           <img id="light" title="Enable Light Control" src="/ruthwell/3dhop/skins/dark/lightcontrol.png" onclick="actionsToolbar('light')" /><br/>
+          <img id="lighting" title="Disable Lighting" src="/ruthwell/3dhop/skins/dark/lighting.png" onclick="actionsToolbar('lighting')" /><br/>
+          <img id="color" title="Disable Colour" src="/ruthwell/3dhop/skins/dark/color.png" onclick="actionsToolbar('color')" /><br/>
           <img id="screenshot" title="Save Screenshot" src="/ruthwell/3dhop/skins/dark/screenshot.png" onclick="actionsToolbar('screenshot')" /><br/>
           <img id="full" title="Full Screen" src="/ruthwell/3dhop/skins/dark/full.png" onclick="actionsToolbar('full')" />
         </div>
@@ -922,6 +924,8 @@ var panelPoses = {
       else if (action === "zoomin") presenter.zoomIn();
       else if (action === "zoomout") presenter.zoomOut();
       else if (action === "light") presenter.enableLightTrackball(!presenter.isLightTrackballEnabled());
+      else if (action === "lighting") presenter.enableSceneLighting(!presenter.isSceneLightingEnabled());
+      else if (action === "color") presenter.setInstanceSolidColor(HOP_ALL, !presenter.isInstanceSolidColorEnabled(), true);
       else if (action === "screenshot") presenter.saveScreenshot();
       else if (action === "full") presenter.fullscreen();
       else if (
@@ -932,6 +936,28 @@ var panelPoses = {
       ) {
         step(action);
       }
+
+      updateToolbarIcons();
+    }
+
+    // Swap toolbar icons to match the current light and colour state
+    function updateToolbarIcons() {
+      var skin = "/ruthwell/3dhop/skins/dark/";
+      var lightOn = presenter.isLightTrackballEnabled();
+      var lightingOn = presenter.isSceneLightingEnabled();
+      var solidColor = presenter.isInstanceSolidColorEnabled();
+
+      var light = document.getElementById("light");
+      light.src = skin + (lightOn ? "lightcontrol_on.png" : "lightcontrol.png");
+      light.title = lightOn ? "Disable Light Control" : "Enable Light Control";
+
+      var lighting = document.getElementById("lighting");
+      lighting.src = skin + (lightingOn ? "lighting.png" : "lighting_off.png");
+      lighting.title = lightingOn ? "Disable Lighting" : "Enable Lighting";
+
+      var color = document.getElementById("color");
+      color.src = skin + (solidColor ? "color_on.png" : "color.png");
+      color.title = solidColor ? "Enable Colour" : "Disable Colour";
     }
 
     function step(action) {
