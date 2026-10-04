@@ -16,9 +16,17 @@ viewer: true
           <img id="light" title="Enable Light Control" src="/ruthwell/3dhop/skins/dark/lightcontrol.png" /><br/>
           <img id="lighting" title="Disable Lighting" src="/ruthwell/3dhop/skins/dark/lighting.png" /><br/>
           <img id="color" title="Disable Colour" src="/ruthwell/3dhop/skins/dark/color.png" /><br/>
-          <img id="screenshot" title="Save Screenshot" src="/ruthwell/3dhop/skins/dark/screenshot.png" /><br/>
-          <img id="full" title="Full Screen" src="/ruthwell/3dhop/skins/dark/full.png" />
+          <img id="screenshot" title="Save Screenshot" src="/ruthwell/3dhop/skins/dark/screenshot.png" />
         </div>
+
+        <!-- Light direction pad: shown while light control is on; drag on the sphere to place the light -->
+        <div id="lightPad" title="Drag to move the light">
+          <canvas id="lightPadCanvas"></canvas>
+        </div>
+        <style>
+          #lightPad { display: none; position: absolute; right: 14px; bottom: 72px; z-index: 50; width: 110px; height: 110px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); cursor: crosshair; touch-action: none; }
+          #lightPad canvas { width: 100%; height: 100%; display: block; }
+        </style>
 
         <div id="loadingOverlay">
           <div class="loading-box">
@@ -655,6 +663,8 @@ function setup3dhop() {
   // Nexus's per-frame draw budget still bounds the rendering cost.
   presenter.setNexusMinFps(0);
 
+  initLightPad();
+
   presenter.resetTrackball();
   setTimeout(function () {
     presenter.repaint();
@@ -692,6 +702,79 @@ function getMouseCanvasPos(e) {
   var x = (p.clientX - rect.left) * canvas.width / rect.width;
   var y = canvas.height - (p.clientY - rect.top) * canvas.height / rect.height;
   return [x, y, x < 0 || x >= canvas.width || y < 0 || y >= canvas.height, e.timeStamp];
+}
+
+// Light pad: a shaded sphere lit from the current light direction, with a marker where the light sits.
+// The light comes from (-d.x, -d.y) in view space, where d is presenter._lightDirection (y up).
+function initLightPad() {
+  var canvas = document.getElementById("lightPadCanvas");
+
+  // Keep the pad in sync however the light moves, including dragging on the model
+  var rotateLight = presenter.rotateLight;
+  presenter.rotateLight = function (x, y) {
+    rotateLight.call(presenter, x, y);
+    drawLightPad();
+  };
+
+  function placeLight(e) {
+    var rect = canvas.getBoundingClientRect();
+    var u = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    var v = 1 - ((e.clientY - rect.top) / rect.height) * 2;
+    // rotateLight doubles its arguments and clamps to the unit disc
+    presenter.rotateLight(u / 2, v / 2);
+  }
+
+  var dragging = false;
+  canvas.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    placeLight(e);
+    // Keep receiving moves if the pointer leaves the pad mid-drag
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  canvas.addEventListener("pointermove", function (e) {
+    if (dragging) placeLight(e);
+  });
+  canvas.addEventListener("pointerup", function () { dragging = false; });
+  canvas.addEventListener("pointercancel", function () { dragging = false; });
+
+  drawLightPad();
+}
+
+function drawLightPad() {
+  var canvas = document.getElementById("lightPadCanvas");
+  var size = canvas.clientWidth || 110;
+  var ratio = pixelRatio();
+  if (canvas.width !== Math.round(size * ratio)) {
+    canvas.width = Math.round(size * ratio);
+    canvas.height = Math.round(size * ratio);
+  }
+  var ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, size, size);
+
+  var c = size / 2;
+  var r = size / 2 - 2;
+  var d = presenter._lightDirection;
+  var lx = c - d[0] * r;
+  var ly = c + d[1] * r;
+
+  var shade = ctx.createRadialGradient(lx, ly, 2, c, c, r * 1.15);
+  shade.addColorStop(0, "#f8f8f8");
+  shade.addColorStop(1, "#111");
+  ctx.beginPath();
+  ctx.arc(c, c, r, 0, 2 * Math.PI);
+  ctx.fillStyle = shade;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(lx, ly, 5, 0, 2 * Math.PI);
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = "#ffd400";
+  ctx.stroke();
 }
 
 function onEnterSpot(id) {
@@ -950,6 +1033,8 @@ var panelPoses = {
       var light = document.getElementById("light");
       light.src = skin + (lightOn ? "lightcontrol_on.png" : "lightcontrol.png");
       light.title = lightOn ? "Disable Light Control" : "Enable Light Control";
+      document.getElementById("lightPad").style.display = lightOn ? "block" : "none";
+      if (lightOn) drawLightPad();
 
       var lighting = document.getElementById("lighting");
       lighting.src = skin + (lightingOn ? "lighting.png" : "lighting_off.png");
