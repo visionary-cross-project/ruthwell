@@ -7,6 +7,8 @@
     carving_highlight: true adds the rune button, which tints incised lines red (see the carving highlight in presenter.js).
     line_spots: optional list of { line, url } hotspot meshes, one per line of an inscription. Each lights up on hover
       together with the page's text marked data-line="<line>", and hovering the text lights up the hotspot.
+    word_spots: the same for single words, as { word, url } with text marked data-word="<word>". Buttons on the page
+      with data-spot-mode="line" or "word" switch between the two sets.
 {% endcomment %}
 {%- assign face = page.face | default: "south" -%}
 {%- case face -%}
@@ -99,21 +101,27 @@
           presenter.setScene({
 {%- if page.model %}
             meshes: {
-              panel: { url: "{{ page.model }}" }{% if page.line_spots %},{% endif %}
+              panel: { url: "{{ page.model }}" },
 {%- for spot in page.line_spots %}
-              line{{ spot.line }}: { url: "{{ spot.url }}" }{% unless forloop.last %},{% endunless %}
+              line{{ spot.line }}: { url: "{{ spot.url }}" },
+{%- endfor %}
+{%- for spot in page.word_spots %}
+              word{{ spot.word }}: { url: "{{ spot.url }}" },
 {%- endfor %}
             },
 
             modelInstances: {
               panel: { mesh: "panel", color: [0.8, 0.7, 0.75], visible: true }
             },
-{%- if page.line_spots %}
+{%- if page.line_spots or page.word_spots %}
 
-            // Line hotspots stay clear (alpha 0) but pickable until hovered
+            // Line and word hotspots stay clear (alpha 0) but pickable until hovered
             spots: {
 {%- for spot in page.line_spots %}
-              line{{ spot.line }}: { mesh: "line{{ spot.line }}", visible: true, alpha: 0.0, alphaHigh: 0.55, color: [0.0, 0.25, 1.0] }{% unless forloop.last %},{% endunless %}
+              line{{ spot.line }}: { mesh: "line{{ spot.line }}", visible: true, alpha: 0.0, alphaHigh: 0.55, color: [0.0, 0.25, 1.0] },
+{%- endfor %}
+{%- for spot in page.word_spots %}
+              word{{ spot.word }}: { mesh: "word{{ spot.word }}", visible: false, alpha: 0.0, alphaHigh: 0.55, color: [0.0, 0.25, 1.0] },
 {%- endfor %}
             },
 {%- endif %}
@@ -170,7 +178,7 @@
 
           initLightPad();
           initCarvingPad();
-          initLineSpots();
+          initSpotHighlights();
 
           presenter.resetTrackball();
           setTimeout(function () {
@@ -311,33 +319,71 @@
           apply();
         }
 
-        // Line hotspots: hovering a hotspot marks its line in the text, and hovering the text lights the hotspot
-        function initLineSpots() {
+        // Line and word hotspots. Hovering a hotspot marks its text (data-line="<line>" or data-word="<word>"),
+        // and hovering the text lights the hotspot. Buttons with data-spot-mode="line" or "word" pick which set is live.
+        function initSpotHighlights() {
           var spots = presenter._scene.spots;
-          if (!spots || !document.querySelector("[data-line]")) return;
+          if (!spots) return;
+          var mode = "line";
 
-          function markText(line, on) {
-            document.querySelectorAll('[data-line="' + line + '"]').forEach(function (el) {
+          function parse(id) {
+            var m = /^(line|word)(.+)$/.exec(id);
+            return m && { kind: m[1], key: m[2] };
+          }
+
+          function markText(kind, key, on) {
+            document.querySelectorAll("[data-" + kind + '="' + key + '"]').forEach(function (el) {
               el.classList.toggle("line-active", on);
             });
           }
 
-          presenter.enableOnHover(true);
-          presenter._onEnterSpot = function (id) { markText(id.replace("line", ""), true); };
-          presenter._onLeaveSpot = function (id) { markText(id.replace("line", ""), false); };
+          function lightSpot(kind, key, on) {
+            var spot = spots[kind + key];
+            if (!spot) return;
+            spot.alpha = on ? spot.alphaHigh : 0.0;
+            presenter.repaint();
+          }
 
-          document.querySelectorAll("[data-line]").forEach(function (el) {
-            var line = el.getAttribute("data-line");
-            var spot = spots["line" + line];
-            el.addEventListener("mouseenter", function () {
-              markText(line, true);
-              if (spot) { spot.alpha = spot.alphaHigh; presenter.repaint(); }
-            });
-            el.addEventListener("mouseleave", function () {
-              markText(line, false);
-              if (spot) { spot.alpha = 0.0; presenter.repaint(); }
+          presenter.enableOnHover(true);
+          presenter._onEnterSpot = function (id) { var s = parse(id); if (s) markText(s.kind, s.key, true); };
+          presenter._onLeaveSpot = function (id) { var s = parse(id); if (s) markText(s.kind, s.key, false); };
+
+          ["line", "word"].forEach(function (kind) {
+            document.querySelectorAll("[data-" + kind + "]").forEach(function (el) {
+              var key = el.getAttribute("data-" + kind);
+              el.addEventListener("mouseenter", function () {
+                if (kind !== mode) return;
+                markText(kind, key, true);
+                lightSpot(kind, key, true);
+              });
+              el.addEventListener("mouseleave", function () {
+                markText(kind, key, false);
+                lightSpot(kind, key, false);
+              });
             });
           });
+
+          // Hidden spots are not pickable, so only the live set responds to the cursor on the model
+          function setMode(m) {
+            mode = m;
+            for (var id in spots) {
+              var s = parse(id);
+              if (!s) continue;
+              spots[id].alpha = 0.0;
+              presenter.setSpotVisibilityByName(id, s.kind === m, false);
+            }
+            document.querySelectorAll(".line-active").forEach(function (el) { el.classList.remove("line-active"); });
+            document.querySelectorAll("[data-spot-mode]").forEach(function (btn) {
+              btn.setAttribute("aria-pressed", btn.getAttribute("data-spot-mode") === m ? "true" : "false");
+            });
+            presenter.repaint();
+          }
+
+          document.querySelectorAll("[data-spot-mode]").forEach(function (btn) {
+            btn.addEventListener("click", function () { setMode(btn.getAttribute("data-spot-mode")); });
+          });
+
+          setMode("line");
         }
 
         function toggleFullscreen() {

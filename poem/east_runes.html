@@ -20,6 +20,27 @@ line_spots:
     url: "/ruthwell/assets/runes/line%206%20ab.ply"
   - line: 7
     url: "/ruthwell/assets/runes/line%207%20ab.ply"
+word_spots:
+  - word: 1a1
+    url: "/ruthwell/assets/runes/line%201%20a%201.ply"
+  - word: 1a2
+    url: "/ruthwell/assets/runes/line%201%20a%202.ply"
+  - word: 1a3
+    url: "/ruthwell/assets/runes/line%201%20a%203.ply"
+  - word: 1a4
+    url: "/ruthwell/assets/runes/line%201%20a%204.ply"
+  - word: 1b1
+    url: "/ruthwell/assets/runes/line%201%20b%201.ply"
+  - word: 1b2
+    url: "/ruthwell/assets/runes/line%201%20b%202.ply"
+  - word: 1b3
+    url: "/ruthwell/assets/runes/line%201%20b%203.ply"
+  - word: 1b4
+    url: "/ruthwell/assets/runes/line%201%20b%204.ply"
+  - word: 1b5
+    url: "/ruthwell/assets/runes/line%201%20b%205.ply"
+  - word: 1b6
+    url: "/ruthwell/assets/runes/line%201%20b%206.ply"
 ---
 <main>
     <div class="viewer-layout">
@@ -47,44 +68,53 @@ line_spots:
             /* A line of verse, marked while it or its hotspot on the model is hovered */
             .runes [data-line] { cursor: default; border-radius: 3px; transition: background-color 0.15s; }
             .runes .line-active { background-color: rgba(0, 64, 255, 0.18); }
+            /* Words / Lines switch for the hotspots */
+            .spot-mode { display: flex; justify-content: center; gap: 0.4rem; margin: 0 0 0.75rem; }
+            .spot-mode button { font: inherit; font-size: 0.75rem; letter-spacing: 0.04em; padding: 0.2rem 0.7rem; border: 1px solid rgba(0, 64, 255, 0.45); border-radius: 999px; background: transparent; color: inherit; cursor: pointer; }
+            .spot-mode button[aria-pressed="true"] { background: rgba(0, 64, 255, 0.18); }
           </style>
 
           <div class="panel-description">
             <p>
               The inscription in reading order: the top border, then down the right border, then down the left.
-              Bracketed dots mark runes that are damaged or missing. Hover over a line of the poem to find it on the model, or over the model to find it here.
+              Bracketed dots mark runes that are damaged or missing. Hover over a line of the poem to find it on the model, or over the model to find it here. Switch to Words to find single words; so far only the first line is divided into words.
             </p>
+
+            <div class="spot-mode" role="group" aria-label="Highlight on the model">
+              <button type="button" data-spot-mode="word" aria-pressed="false">Words</button>
+              <button type="button" data-spot-mode="line" aria-pressed="true">Lines</button>
+            </div>
 
             <div class="runes-layout">
             <div class="runes-border runes-top">
               <h3>Top border</h3>
               <p class="runes" lang="ang-Runr">
-                  <span data-line="1">ᚷᛖᚱᛖ</span>
+                  <span data-line="1"><span data-word="1a1">ᚷᛖᚱᛖ</span></span>
               </p>
             </div>
 
             <div class="runes-border runes-right">
               <h3>Right border</h3>
               <p class="runes" lang="ang-Runr">
-                  <span data-line="1">ᛞᚫ</span><br>
-                  <span data-line="1">ᚻᛁ</span><br>
-                  <span data-line="1">ᚾᚫ</span><br>
-                  <span data-line="1">ᚸᚩ</span><br>
-                  <span data-line="1">ᛞᚪ</span><br>
-                  <span data-line="1">ᛚᛗ</span><br>
-                  <span data-line="1">ᛖᛇ</span><br>
-                  <span data-line="1">ᛏᛏᛁ</span><br>
-                  <span data-line="1">ᚷ·ᚦ</span><br>
-                  <span data-line="1">ᚪᚻ</span><br>
-                  <span data-line="1">ᛖᚹ</span><br>
-                  <span data-line="1">ᚪᛚ</span><br>
-                  <span data-line="1">ᛞᛖ</span><br>
-                  <span data-line="1">ᚩᚾ</span><br>
-                  <span data-line="1">ᚸᚪ</span><br>
-                  <span data-line="1">ᛚᚸ</span><br>
-                  <span data-line="1">ᚢᚷ</span><br>
-                  <span data-line="1">ᛁᛋᛏ</span><br>
-                  <span data-line="1">ᛁᚸᚪ</span><br>
+                  <span data-line="1"><span data-word="1a1">ᛞᚫ</span></span><br>
+                  <span data-line="1"><span data-word="1a2">ᚻᛁ</span></span><br>
+                  <span data-line="1"><span data-word="1a2">ᚾᚫ</span></span><br>
+                  <span data-line="1"><span data-word="1a3">ᚸᚩ</span></span><br>
+                  <span data-line="1"><span data-word="1a3">ᛞ</span><span data-word="1a4">ᚪ</span></span><br>
+                  <span data-line="1"><span data-word="1a4">ᛚᛗ</span></span><br>
+                  <span data-line="1"><span data-word="1a4">ᛖᛇ</span></span><br>
+                  <span data-line="1"><span data-word="1a4">ᛏᛏᛁ</span></span><br>
+                  <span data-line="1"><span data-word="1a4">ᚷ</span>·<span data-word="1b1">ᚦ</span></span><br>
+                  <span data-line="1"><span data-word="1b1">ᚪ</span><span data-word="1b2">ᚻ</span></span><br>
+                  <span data-line="1"><span data-word="1b2">ᛖ</span><span data-word="1b3">ᚹ</span></span><br>
+                  <span data-line="1"><span data-word="1b3">ᚪᛚ</span></span><br>
+                  <span data-line="1"><span data-word="1b3">ᛞᛖ</span></span><br>
+                  <span data-line="1"><span data-word="1b4">ᚩᚾ</span></span><br>
+                  <span data-line="1"><span data-word="1b5">ᚸᚪ</span></span><br>
+                  <span data-line="1"><span data-word="1b5">ᛚᚸ</span></span><br>
+                  <span data-line="1"><span data-word="1b5">ᚢ</span><span data-word="1b6">ᚷ</span></span><br>
+                  <span data-line="1"><span data-word="1b6">ᛁᛋᛏ</span></span><br>
+                  <span data-line="1"><span data-word="1b6">ᛁᚸᚪ</span></span><br>
                   <span data-line="2">ᛗᚩᛞ</span><br>
                   <span data-line="2">ᛁᚷᚠ</span><br>
                   <span data-line="2">[...]</span><br>
