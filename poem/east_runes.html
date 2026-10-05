@@ -68,10 +68,11 @@ word_spots:
             /* A line of verse, marked while it or its hotspot on the model is hovered */
             .runes [data-line] { cursor: default; border-radius: 3px; transition: background-color 0.15s; }
             .runes .line-active { background-color: rgba(0, 64, 255, 0.18); }
-            /* Words / Lines switch for the hotspots */
-            .spot-mode { display: flex; justify-content: center; gap: 0.4rem; margin: 0 0 0.75rem; }
-            .spot-mode button { font: inherit; font-size: 0.75rem; letter-spacing: 0.04em; padding: 0.2rem 0.7rem; border: 1px solid rgba(0, 64, 255, 0.45); border-radius: 999px; background: transparent; color: inherit; cursor: pointer; }
-            .spot-mode button[aria-pressed="true"] { background: rgba(0, 64, 255, 0.18); }
+            /* Words / Lines / None switch for the hotspots: a small version of the sidebar tabs on model.html */
+            .spot-mode { display: flex; justify-content: center; margin: 0 auto 0.9rem; width: fit-content; border: 1px solid #111; }
+            .spot-mode button { padding: 0.35rem 0.9rem; border: none; border-right: 1px solid #111; border-radius: 0; background: #f8f8f8; color: #111; font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+            .spot-mode button:last-child { border-right: none; }
+            .spot-mode button:hover, .spot-mode button[aria-pressed="true"] { background: #111; color: #fff; }
           </style>
 
           <div class="panel-description">
@@ -83,6 +84,7 @@ word_spots:
             <div class="spot-mode" role="group" aria-label="Highlight on the model">
               <button type="button" data-spot-mode="word" aria-pressed="false">Words</button>
               <button type="button" data-spot-mode="line" aria-pressed="true">Lines</button>
+              <button type="button" data-spot-mode="none" aria-pressed="false">None</button>
             </div>
 
             <div class="runes-layout">
@@ -184,9 +186,9 @@ word_spots:
           </div>
 
             <nav class="panel-nav-bottom" aria-label="Panel navigation">
-            <a href="west_runes.html" class="panel-nav-card prev-link">
-                <span class="panel-nav-label">Previous</span>
-                <span class="panel-nav-title">← West Runes</span>
+            <a href="west_runes.html" class="panel-nav-card next-link">
+                <span class="panel-nav-label">Next</span>
+                <span class="panel-nav-title">West Runes →</span>
             </a>
             </nav>
         </section>

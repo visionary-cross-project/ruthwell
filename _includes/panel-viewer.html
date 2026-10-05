@@ -8,7 +8,7 @@
     line_spots: optional list of { line, url } hotspot meshes, one per line of an inscription. Each lights up on hover
       together with the page's text marked data-line="<line>", and hovering the text lights up the hotspot.
     word_spots: the same for single words, as { word, url } with text marked data-word="<word>". Buttons on the page
-      with data-spot-mode="line" or "word" switch between the two sets.
+      with data-spot-mode="line", "word" or "none" switch between the two sets or turn both off.
 {% endcomment %}
 {%- assign face = page.face | default: "south" -%}
 {%- case face -%}
@@ -84,6 +84,11 @@
             </table>
           </div>
 
+          <style>
+            /* Full-window fallback for browsers without the Fullscreen API (see toggleFullscreen) */
+            html.viewer-fullwindow, html.viewer-fullwindow body { overflow: hidden; }
+            html.viewer-fullwindow #viewerWrap { position: fixed; inset: 0; z-index: 10000; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; border: none; }
+          </style>
           <button id="fullscreen-btn" title="Toggle Full Screen" onclick="toggleFullscreen()">
             <img src="/ruthwell/3dhop/skins/dark/full.png" alt="Full Screen" />
           </button>
@@ -320,7 +325,7 @@
         }
 
         // Line and word hotspots. Hovering a hotspot marks its text (data-line="<line>" or data-word="<word>"),
-        // and hovering the text lights the hotspot. Buttons with data-spot-mode="line" or "word" pick which set is live.
+        // and hovering the text lights the hotspot. Buttons with data-spot-mode="line", "word" or "none" pick which set is live.
         function initSpotHighlights() {
           var spots = presenter._scene.spots;
           if (!spots) return;
@@ -386,19 +391,55 @@
           setMode("line");
         }
 
+        // Full screen uses the browser's Fullscreen API where it exists. iPhone Safari has none for page elements,
+        // and some browsers refuse the request, so then the viewer is stretched over the window instead.
+        function fullscreenElement() {
+          return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+        }
+
+        function isFullscreen() {
+          return !!fullscreenElement() || document.documentElement.classList.contains("viewer-fullwindow");
+        }
+
+        function setFullWindow(on) {
+          document.documentElement.classList.toggle("viewer-fullwindow", on);
+          afterFullscreenChange();
+        }
+
+        function afterFullscreenChange() {
+          var btn = document.querySelector("#fullscreen-btn img");
+          var on = isFullscreen();
+          btn.src = "/ruthwell/3dhop/skins/dark/" + (on ? "full_on.png" : "full.png");
+          btn.alt = on ? "Exit Full Screen" : "Full Screen";
+          // Let init.js and fitCanvasToDisplay resize the canvas to the new box
+          setTimeout(function () { jQuery(window).trigger("resize"); }, 50);
+        }
+
         function toggleFullscreen() {
           var el = document.getElementById("3dhop");
-          var btn = document.querySelector("#fullscreen-btn img");
-          if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+          if (document.documentElement.classList.contains("viewer-fullwindow")) {
+            setFullWindow(false);
+          } else if (fullscreenElement()) {
             (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
-            btn.src = "/ruthwell/3dhop/skins/dark/full.png";
-            btn.alt = "Full Screen";
           } else {
-            (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
-            btn.src = "/ruthwell/3dhop/skins/dark/full_on.png";
-            btn.alt = "Exit Full Screen";
+            var request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+            if (!request) return setFullWindow(true);
+            try {
+              var result = request.call(el);
+              if (result && result.catch) result.catch(function () { setFullWindow(true); });
+            } catch (err) {
+              setFullWindow(true);
+            }
           }
         }
+
+        ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange"].forEach(function (type) {
+          document.addEventListener(type, afterFullscreenChange);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && document.documentElement.classList.contains("viewer-fullwindow")) setFullWindow(false);
+        });
 
         // 3dhop/js/init.js calls this for each #toolbar img, so the images carry no onclick of their own
         function actionsToolbar(action) {
