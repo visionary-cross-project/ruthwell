@@ -1,10 +1,12 @@
 {% comment %}
-  Shared viewer for the panel pages: the same toolbar, light pad and move pad as model.html, with no hotspots.
+  Shared viewer for the panel pages: the same toolbar, light pad and move pad as model.html, with no panel hotspots.
 
   Front matter on the including page:
     face:  south | north | east | west — the face the placeholder cross turns to on load and on Home
     model: optional URL of the panel's own cut. Until it is set, the page shows the whole cross as a placeholder.
     carving_highlight: true adds the rune button, which tints incised lines red (see the carving highlight in presenter.js).
+    line_spots: optional list of { line, url } hotspot meshes, one per line of an inscription. Each lights up on hover
+      together with the page's text marked data-line="<line>", and hovering the text lights up the hotspot.
 {% endcomment %}
 {%- assign face = page.face | default: "south" -%}
 {%- case face -%}
@@ -97,12 +99,24 @@
           presenter.setScene({
 {%- if page.model %}
             meshes: {
-              panel: { url: "{{ page.model }}" }
+              panel: { url: "{{ page.model }}" }{% if page.line_spots %},{% endif %}
+{%- for spot in page.line_spots %}
+              line{{ spot.line }}: { url: "{{ spot.url }}" }{% unless forloop.last %},{% endunless %}
+{%- endfor %}
             },
 
             modelInstances: {
               panel: { mesh: "panel", color: [0.8, 0.7, 0.75], visible: true }
             },
+{%- if page.line_spots %}
+
+            // Line hotspots stay clear (alpha 0) but pickable until hovered
+            spots: {
+{%- for spot in page.line_spots %}
+              line{{ spot.line }}: { mesh: "line{{ spot.line }}", visible: true, alpha: 0.0, alphaHigh: 0.55, color: [0.0, 0.25, 1.0] }{% unless forloop.last %},{% endunless %}
+{%- endfor %}
+            },
+{%- endif %}
 {%- else %}
             // Placeholder until this panel has its own cut: the whole cross, as on model.html
             meshes: {
@@ -156,6 +170,7 @@
 
           initLightPad();
           initCarvingPad();
+          initLineSpots();
 
           presenter.resetTrackball();
           setTimeout(function () {
@@ -294,6 +309,35 @@
           });
 
           apply();
+        }
+
+        // Line hotspots: hovering a hotspot marks its line in the text, and hovering the text lights the hotspot
+        function initLineSpots() {
+          var spots = presenter._scene.spots;
+          if (!spots || !document.querySelector("[data-line]")) return;
+
+          function markText(line, on) {
+            document.querySelectorAll('[data-line="' + line + '"]').forEach(function (el) {
+              el.classList.toggle("line-active", on);
+            });
+          }
+
+          presenter.enableOnHover(true);
+          presenter._onEnterSpot = function (id) { markText(id.replace("line", ""), true); };
+          presenter._onLeaveSpot = function (id) { markText(id.replace("line", ""), false); };
+
+          document.querySelectorAll("[data-line]").forEach(function (el) {
+            var line = el.getAttribute("data-line");
+            var spot = spots["line" + line];
+            el.addEventListener("mouseenter", function () {
+              markText(line, true);
+              if (spot) { spot.alpha = spot.alphaHigh; presenter.repaint(); }
+            });
+            el.addEventListener("mouseleave", function () {
+              markText(line, false);
+              if (spot) { spot.alpha = 0.0; presenter.repaint(); }
+            });
+          });
         }
 
         function toggleFullscreen() {

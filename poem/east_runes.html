@@ -5,6 +5,21 @@ viewer: true
 carving_highlight: true
 face: east
 model: "/ruthwell/assets/models/runes_right_high.nxz"
+line_spots:
+  - line: 1
+    url: "/ruthwell/assets/runes/line%201%20ab.ply"
+  - line: 2
+    url: "/ruthwell/assets/runes/line%202%20a.ply"
+  - line: 3
+    url: "/ruthwell/assets/runes/line%203%20ab.ply"
+  - line: 4
+    url: "/ruthwell/assets/runes/line%204%20a.ply"
+  - line: 5
+    url: "/ruthwell/assets/runes/line%205%20ab.ply"
+  - line: 6
+    url: "/ruthwell/assets/runes/line%206%20ab.ply"
+  - line: 7
+    url: "/ruthwell/assets/runes/line%207%20ab.ply"
 ---
 <main>
     <div class="viewer-layout">
@@ -29,103 +44,106 @@ model: "/ruthwell/assets/models/runes_right_high.nxz"
             .runes-left { grid-area: left; text-align: center; }
             .runes-right { grid-area: right; text-align: center; }
             .runes-layout h3 { font-size: 0.85rem; margin-bottom: 0.25rem; }
+            /* A line of verse, marked while it or its hotspot on the model is hovered */
+            .runes [data-line] { cursor: default; border-radius: 3px; transition: background-color 0.15s; }
+            .runes .line-active { background-color: rgba(0, 64, 255, 0.18); }
           </style>
 
           <div class="panel-description">
             <p>
               The inscription in reading order: the top border, then down the right border, then down the left.
-              Bracketed dots mark runes that are damaged or missing.
+              Bracketed dots mark runes that are damaged or missing. Hover over a line of the poem to find it on the model, or over the model to find it here.
             </p>
 
             <div class="runes-layout">
             <div class="runes-border runes-top">
               <h3>Top border</h3>
               <p class="runes" lang="ang-Runr">
-                  ᚷᛖᚱᛖ
+                  <span data-line="1">ᚷᛖᚱᛖ</span>
               </p>
             </div>
 
             <div class="runes-border runes-right">
               <h3>Right border</h3>
               <p class="runes" lang="ang-Runr">
-                  ᛞᚫ<br>
-                  ᚻᛁ<br>
-                  ᚾᚫ<br>
-                  ᚸᚩ<br>
-                  ᛞᚪ<br>
-                  ᛚᛗ<br>
-                  ᛖᛇ<br>
-                  ᛏᛏᛁ<br>
-                  ᚷ·ᚦ<br>
-                  ᚪᚻ<br>
-                  ᛖᚹ<br>
-                  ᚪᛚ<br>
-                  ᛞᛖ<br>
-                  ᚩᚾ<br>
-                  ᚸᚪ<br>
-                  ᛚᚸ<br>
-                  ᚢᚷ<br>
-                  ᛁᛋᛏ<br>
-                  ᛁᚸᚪ<br>
-                  ᛗᚩᛞ<br>
-                  ᛁᚷᚠ<br>
-                  [...]<br>
-                  [....]<br>
-                  ᛗᛖᚾ<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]
+                  <span data-line="1">ᛞᚫ</span><br>
+                  <span data-line="1">ᚻᛁ</span><br>
+                  <span data-line="1">ᚾᚫ</span><br>
+                  <span data-line="1">ᚸᚩ</span><br>
+                  <span data-line="1">ᛞᚪ</span><br>
+                  <span data-line="1">ᛚᛗ</span><br>
+                  <span data-line="1">ᛖᛇ</span><br>
+                  <span data-line="1">ᛏᛏᛁ</span><br>
+                  <span data-line="1">ᚷ·ᚦ</span><br>
+                  <span data-line="1">ᚪᚻ</span><br>
+                  <span data-line="1">ᛖᚹ</span><br>
+                  <span data-line="1">ᚪᛚ</span><br>
+                  <span data-line="1">ᛞᛖ</span><br>
+                  <span data-line="1">ᚩᚾ</span><br>
+                  <span data-line="1">ᚸᚪ</span><br>
+                  <span data-line="1">ᛚᚸ</span><br>
+                  <span data-line="1">ᚢᚷ</span><br>
+                  <span data-line="1">ᛁᛋᛏ</span><br>
+                  <span data-line="1">ᛁᚸᚪ</span><br>
+                  <span data-line="2">ᛗᚩᛞ</span><br>
+                  <span data-line="2">ᛁᚷᚠ</span><br>
+                  <span data-line="2">[...]</span><br>
+                  <span data-line="2">[....]</span><br>
+                  <span data-line="2">ᛗᛖᚾ</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span><br>
+                  <span data-line="3">[...]</span>
               </p>
             </div>
 
             <div class="runes-border runes-left">
               <h3>Left border</h3>
               <p class="runes" lang="ang-Runr">
-                  [...]<br>
-                  ᛁᚳᚱ<br>
-                  ᛁᛁᚳᚾ<br>
-                  ᚫᚸᚣ<br>
-                  ᚾᛁᛝ<br>
-                  ᚳ·ᚻᛠ<br>
-                  ᚠᚢᚾ<br>
-                  ᚫᛋᚻ<br>
-                  ᛚᚪᚠ<br>
-                  ᚪᚱᛞ<br>
-                  ᚻᚫᛚ<br>
-                  ᛞᚪᛁᚳ<br>
-                  ᚾᛁᛞᚩ<br>
-                  ᚱᛋᛏᚫ<br>
-                  [..]ᛋᛗ<br>
-                  ᚫᚱᚫ[.]<br>
-                  ᚢᚢᛝ<br>
-                  ᚸᛖᛏ<br>
-                  ᛗᛖᚾ<br>
-                  ᛒᚪᚫᛏ<br>
-                  ᚸᚪᛞ<br>
-                  [..]ᛁᚳ<br>
-                  [...]<br>
-                  ᛗᛁᚦᛒ<br>
-                  [.]ᚩᛞᚫ<br>
-                  ᛒᛁᛋᛏ<br>
-                  ᛖᛗᛁ<br>
-                  [.]ᛒᛁ<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]
+                  <span data-line="4">[...]</span><br>
+                  <span data-line="4">ᛁᚳᚱ</span><br>
+                  <span data-line="4">ᛁᛁᚳᚾ</span><br>
+                  <span data-line="4">ᚫᚸᚣ</span><br>
+                  <span data-line="4">ᚾᛁᛝ</span><br>
+                  <span data-line="4">ᚳ·</span><span data-line="5">ᚻᛠ</span><br>
+                  <span data-line="5">ᚠᚢᚾ</span><br>
+                  <span data-line="5">ᚫᛋᚻ</span><br>
+                  <span data-line="5">ᛚᚪᚠ</span><br>
+                  <span data-line="5">ᚪᚱᛞ</span><br>
+                  <span data-line="5">ᚻᚫᛚ</span><br>
+                  <span data-line="5">ᛞᚪᛁᚳ</span><br>
+                  <span data-line="5">ᚾᛁᛞᚩ</span><br>
+                  <span data-line="5">ᚱᛋᛏᚫ</span><br>
+                  <span data-line="6">[..]ᛋᛗ</span><br>
+                  <span data-line="6">ᚫᚱᚫ[.]</span><br>
+                  <span data-line="6">ᚢᚢᛝ</span><br>
+                  <span data-line="6">ᚸᛖᛏ</span><br>
+                  <span data-line="6">ᛗᛖᚾ</span><br>
+                  <span data-line="6">ᛒᚪᚫᛏ</span><br>
+                  <span data-line="6">ᚸᚪᛞ</span><br>
+                  <span data-line="6">[..]ᛁᚳ</span><br>
+                  <span data-line="6">[...]</span><br>
+                  <span data-line="6">ᛗᛁᚦᛒ</span><br>
+                  <span data-line="6">[.]ᚩᛞᚫ</span><br>
+                  <span data-line="6">ᛒᛁᛋᛏ</span><br>
+                  <span data-line="6">ᛖᛗᛁ</span><br>
+                  <span data-line="7">[.]ᛒᛁ</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span><br>
+                  <span data-line="7">[...]</span>
               </p>
             </div>
             </div>
