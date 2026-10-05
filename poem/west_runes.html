@@ -5,6 +5,21 @@ viewer: true
 carving_highlight: true
 face: west
 model: "/ruthwell/assets/models/runes_left_high.nxz"
+line_spots:
+  - line: 8
+    url: "/ruthwell/assets/runes/line%208%20a.ply"
+  - line: 9
+    url: "/ruthwell/assets/runes/line%209%20ab.ply"
+  - line: 10
+    url: "/ruthwell/assets/runes/line%2010%20ab.ply"
+  - line: 11
+    url: "/ruthwell/assets/runes/line%2011%20ab.ply"
+  - line: 12
+    url: "/ruthwell/assets/runes/line%2012%20ab.ply"
+  - line: 13
+    url: "/ruthwell/assets/runes/line%2013%20ab.ply"
+  - line: 14
+    url: "/ruthwell/assets/runes/line%2014%20ab.ply"
 ---
 <main>
     <div class="viewer-layout">
@@ -29,99 +44,102 @@ model: "/ruthwell/assets/models/runes_left_high.nxz"
             .runes-left { grid-area: left; text-align: center; }
             .runes-right { grid-area: right; text-align: center; }
             .runes-layout h3 { font-size: 0.85rem; margin-bottom: 0.25rem; }
+            /* A line of verse, marked while it or its hotspot on the model is hovered */
+            .runes [data-line] { cursor: default; border-radius: 3px; transition: background-color 0.15s; }
+            .runes .line-active { background-color: rgba(0, 64, 255, 0.18); }
           </style>
 
           <div class="panel-description">
             <p>
               The inscription in reading order: the top border, then down the right border, then down the left.
-              Bracketed dots mark runes that are damaged or missing.
+              Bracketed dots mark runes that are damaged or missing. Hover over a line of the poem to find it on the model, or over the model to find it here.
             </p>
 
             <div class="runes-layout">
             <div class="runes-border runes-top">
               <h3>Top border</h3>
               <p class="runes" lang="ang-Runr">
-                  [.]ᛣᚱᛁᛋ[.]ᚹᚫᛋᚩᚾ
+                  <span data-line="8">[.]ᛣᚱᛁᛋ[.]ᚹᚫᛋᚩᚾ</span>
               </p>
             </div>
 
             <div class="runes-border runes-right">
               <h3>Right border</h3>
               <p class="runes" lang="ang-Runr">
-                  ᚱᚩ<br>
-                  ᛞᛁ<br>
-                  ᚻᚹ<br>
-                  ᛖᚦ<br>
-                  ᚱᚫ<br>
-                  ᚦᛖ<br>
-                  ᚱᚠ<br>
-                  ᚢᛋᚫ<br>
-                  ᚠᛠᚱ<br>
-                  ᚱᚪᚾ<br>
-                  ᛣᚹᚩ<br>
-                  ᛗᚢᚫ<br>
-                  ᚦᚦᛁᛚ<br>
-                  ᚫᛏᛁᛚ<br>
-                  ᚪᚾᚢ<br>
-                  ᛗᛁᚳ<br>
-                  ᚦᚫᛏᚪ<br>
-                  ᛚᛒᛁ[.]<br>
-                  [...]<br>
-                  ᛋᚪ[..]<br>
-                  ᛁᚳᚹ[.]<br>
-                  ᛋᛗᛁ[.]<br>
-                  ᛋᚩ[.]<br>
-                  ᚸᚢ[.]<br>
-                  ᚷᛁᛞ<br>
-                  ᚱᛟ[..]<br>
-                  ᛞᚻ[.]<br>
-                  ᚪᚸ<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]
+                  <span data-line="8">ᚱᚩ</span><br>
+                  <span data-line="8">ᛞᛁ</span><br>
+                  <span data-line="9">ᚻᚹ</span><br>
+                  <span data-line="9">ᛖᚦ</span><br>
+                  <span data-line="9">ᚱᚫ</span><br>
+                  <span data-line="9">ᚦᛖ</span><br>
+                  <span data-line="9">ᚱᚠ</span><br>
+                  <span data-line="9">ᚢᛋᚫ</span><br>
+                  <span data-line="9">ᚠᛠᚱ</span><br>
+                  <span data-line="9">ᚱᚪᚾ</span><br>
+                  <span data-line="9">ᛣᚹᚩ</span><br>
+                  <span data-line="9">ᛗᚢ</span><span data-line="10">ᚫ</span><br>
+                  <span data-line="10">ᚦᚦᛁᛚ</span><br>
+                  <span data-line="10">ᚫᛏᛁᛚ</span><br>
+                  <span data-line="10">ᚪᚾᚢ</span><br>
+                  <span data-line="10">ᛗᛁᚳ</span><br>
+                  <span data-line="10">ᚦᚫᛏᚪ</span><br>
+                  <span data-line="10">ᛚᛒᛁ[.]</span><br>
+                  <span data-line="10">[...]</span><br>
+                  <span data-line="11">ᛋᚪ[..]</span><br>
+                  <span data-line="11">ᛁᚳᚹ[.]</span><br>
+                  <span data-line="11">ᛋᛗᛁ[.]</span><br>
+                  <span data-line="11">ᛋᚩ[.]</span><br>
+                  <span data-line="11">ᚸᚢ[.]</span><br>
+                  <span data-line="11">ᚷᛁᛞ</span><br>
+                  <span data-line="11">ᚱᛟ[..]</span><br>
+                  <span data-line="11">ᛞᚻ[.]</span><br>
+                  <span data-line="11">ᚪᚸ</span><br>
+                  <span data-line="11">[...]</span><br>
+                  <span data-line="11">[...]</span><br>
+                  <span data-line="11">[...]</span><br>
+                  <span data-line="11">[...]</span><br>
+                  <span data-line="11">[...]</span><br>
+                  <span data-line="11">[...]</span>
               </p>
             </div>
 
             <div class="runes-border runes-left">
               <h3>Left border</h3>
               <p class="runes" lang="ang-Runr">
-                  [.]ᛁ<br>
-                  ᚦᛋ<br>
-                  [.]ᚱᛖ<br>
-                  [.]ᚢ<br>
-                  ᛗᚷ<br>
-                  ᛁᚹ<br>
-                  ᚢᚾ<br>
-                  ᛞᚪᛞ<br>
-                  ᚪᛚᛖ<br>
-                  ᚷᛞᚢ<br>
-                  ᚾᚻᛁᚫ<br>
-                  ᚻᛁᚾᚫ<br>
-                  ᛚᛁᛗᚹ<br>
-                  ᛟᚱᛁᚷ<br>
-                  ᚾᚫᚷᛁ<br>
-                  ᛋᛏᚩ<br>
-                  ᛞᛞᚢ<br>
-                  [.]ᚻᛁᛗ<br>
-                  [...]<br>
-                  [....]<br>
-                  [.]ᚫᛋ<br>
-                  [..]ᚠ<br>
-                  [..]ᛗ<br>
-                  [...]ᛠ<br>
-                  [.]ᛞᚢ<br>
-                  [..]ᛁ<br>
-                  [.]ᚦᛖ<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]<br>
-                  [...]
+                  <span data-line="12">[.]ᛁ</span><br>
+                  <span data-line="12">ᚦᛋ</span><br>
+                  <span data-line="12">[.]ᚱᛖ</span><br>
+                  <span data-line="12">[.]ᚢ</span><br>
+                  <span data-line="12">ᛗᚷ</span><br>
+                  <span data-line="12">ᛁᚹ</span><br>
+                  <span data-line="12">ᚢᚾ</span><br>
+                  <span data-line="12">ᛞᚪᛞ</span><br>
+                  <span data-line="13">ᚪᛚᛖ</span><br>
+                  <span data-line="13">ᚷᛞᚢ</span><br>
+                  <span data-line="13">ᚾᚻᛁᚫ</span><br>
+                  <span data-line="13">ᚻᛁᚾᚫ</span><br>
+                  <span data-line="13">ᛚᛁᛗᚹ</span><br>
+                  <span data-line="13">ᛟᚱᛁᚷ</span><br>
+                  <span data-line="13">ᚾᚫᚷᛁ</span><br>
+                  <span data-line="13">ᛋᛏᚩ</span><br>
+                  <span data-line="13">ᛞᛞᚢ</span><br>
+                  <span data-line="13">[.]ᚻᛁᛗ</span><br>
+                  <span data-line="13">[...]</span><br>
+                  <span data-line="13">[....]</span><br>
+                  <span data-line="13">[.]ᚫᛋ</span><br>
+                  <span data-line="13">[..]ᚠ</span><br>
+                  <span data-line="13">[..]ᛗ</span><br>
+                  <span data-line="14">[...]ᛠ</span><br>
+                  <span data-line="14">[.]ᛞᚢ</span><br>
+                  <span data-line="14">[..]ᛁ</span><br>
+                  <span data-line="14">[.]ᚦᛖ</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span><br>
+                  <span data-line="14">[...]</span>
               </p>
             </div>
             </div>
